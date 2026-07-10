@@ -42,7 +42,10 @@ The merged table contains 9254 rows and 155 columns.
 4. Standardize attachments into file name, MIME type, parse status, extracted
    text, failure reason, and confidence fields.
 5. Build `clean_text`, `symptoms`, `medical_terms`, and `tokens` for AI
-   analysis.
+   analysis. `clean_text` uses complaint, history, exam, auxiliary exam, and
+   parsed attachment text. Human-entered preliminary diagnosis, treatment, and
+   medication fields are kept as structured fields but excluded from
+   `clean_text` to avoid label leakage.
 
 `scripts/feature_builder.py` creates dictionary-based keyword features from the
 clinical train/test/demo CSV files.

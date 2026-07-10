@@ -69,7 +69,8 @@ The preprocessing script applies these rules:
 - replace common synonyms, for example `发烧 -> 发热`, `拉肚子 -> 腹泻`
 - default optional text fields to `无`
 - combine complaint, history, signs, exam, and parsed attachment text into `clean_text`
-- keep preliminary diagnosis, treatment, and medication as display-only fields; never include them in model features, which avoids label leakage
+- combine complaint, history, signs, exam, auxiliary exam, and parsed attachment text into `clean_text`
+- keep `preliminary_diagnosis`, `treatment_taken`, and `medication_usage` as structured display/reference fields; never include them in model features to avoid label leakage
 - extract dictionary-based `symptoms`, `medical_terms`, and `tokens`
 
 ## 5. Attachment Parse Schema
