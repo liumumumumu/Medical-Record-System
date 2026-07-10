@@ -64,6 +64,16 @@ TEXT_FIELDS = [
     "medication_usage",
 ]
 
+MODEL_TEXT_FIELDS = [
+    "chief_complaint",
+    "present_illness",
+    "past_history",
+    "allergy_history",
+    "vital_signs",
+    "physical_exam",
+    "auxiliary_exam",
+]
+
 GENDER_VALUES = {"male", "female"}
 DEPARTMENT_VALUES = {"internal", "surgery", "pediatrics", "emergency", "other"}
 GENERATION_NEED_VALUES = {"record", "symptom", "diagnosis", "treatment", "full-report"}
@@ -231,7 +241,13 @@ def tokenize_text(cleaned_text: str, resources: dict[str, Any]) -> dict[str, lis
 def standardize_attachments(attachments: Any, synonyms: dict[str, str]) -> list[dict[str, Any]]:
     if not attachments:
         return []
-    if not isinstance(attachments, list):
+    if isinstance(attachments, str):
+        attachments = [
+            file_name.strip()
+            for file_name in re.split(r"\s+/\s+", attachments)
+            if file_name.strip()
+        ]
+    elif not isinstance(attachments, list):
         return []
 
     standardized: list[dict[str, Any]] = []
@@ -292,7 +308,9 @@ def standardize_case(raw_case: dict[str, Any], resources: dict[str, Any] | None 
         for attachment in standardized["attachments"]
         if attachment.get("parse_status") == "parsed" and attachment.get("extracted_text")
     )
-    clean_text_parts = [standardized[field] for field in TEXT_FIELDS if standardized.get(field)]
+    clean_text_parts = [
+        standardized[field] for field in MODEL_TEXT_FIELDS if standardized.get(field)
+    ]
     if attachment_text:
         clean_text_parts.append(attachment_text)
     standardized["clean_text"] = clean_text(" ".join(clean_text_parts), synonyms)

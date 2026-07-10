@@ -69,11 +69,14 @@ class PreprocessCaseTest(unittest.TestCase):
             self.assertIn("发热", result["tokens"])
             self.assertIn("咳嗽", result["tokens"])
             self.assertIn("白细胞", result["tokens"])
-            self.assertIn("上呼吸道感染", result["medical_terms"])
+            self.assertNotIn("上呼吸道感染", result["medical_terms"])
             self.assertNotIn("气促", result["symptoms"])
             self.assertNotIn("高血压", result["medical_terms"])
             self.assertNotIn("糖尿病", result["medical_terms"])
             self.assertNotIn("发烧", result["clean_text"])
+            self.assertNotIn("上呼吸道感染", result["clean_text"])
+            self.assertNotIn("退热处理", result["clean_text"])
+            self.assertNotIn("对乙酰氨基酚", result["clean_text"])
 
     def test_standardize_case_reports_frontend_field_errors(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -123,6 +126,30 @@ class PreprocessCaseTest(unittest.TestCase):
         self.assertEqual(result["attachments"][0]["parse_status"], "failed")
         self.assertEqual(result["attachments"][0]["failure_reason"], "图片模糊，无法识别文字")
         self.assertIn("腹泻", result["clean_text"])
+
+    def test_standardize_case_accepts_frontend_attachment_string(self):
+        raw_case = {
+            "patientName": "赵某",
+            "gender": "male",
+            "age": 40,
+            "chiefComplaint": "发热、咳嗽 2 天",
+            "presentIllness": "受凉后出现发热和咳嗽。",
+            "pastHistory": "无",
+            "attachments": "blood-test.pdf / chest-xray.png",
+        }
+
+        result = standardize_case(raw_case)
+
+        self.assertEqual(
+            [attachment["file_name"] for attachment in result["attachments"]],
+            ["blood-test.pdf", "chest-xray.png"],
+        )
+        self.assertTrue(
+            all(
+                attachment["parse_status"] == "pending"
+                for attachment in result["attachments"]
+            )
+        )
 
 
 if __name__ == "__main__":

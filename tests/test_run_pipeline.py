@@ -4,7 +4,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
-from run_pipeline import run_pipeline
+from run_pipeline import ROOT, run_pipeline
 
 
 class RunPipelineTest(unittest.TestCase):
@@ -12,7 +12,7 @@ class RunPipelineTest(unittest.TestCase):
         calls = []
 
         def fake_runner(command, cwd, check):
-            calls.append((Path(command[1]).name, Path(cwd).name, check))
+            calls.append((Path(command[1]).name, Path(cwd).resolve(), check))
 
         run_pipeline(runner=fake_runner)
 
@@ -26,7 +26,7 @@ class RunPipelineTest(unittest.TestCase):
                 "validate_outputs.py",
             ],
         )
-        self.assertTrue(all(call[1] == "Medical-Record-System" for call in calls))
+        self.assertTrue(all(call[1] == ROOT.resolve() for call in calls))
         self.assertTrue(all(call[2] is True for call in calls))
 
 

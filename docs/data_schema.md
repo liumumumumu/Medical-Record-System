@@ -68,7 +68,8 @@ The preprocessing script applies these rules:
 - collapse repeated punctuation such as `!!!` into `!`
 - replace common synonyms, for example `发烧 -> 发热`, `拉肚子 -> 腹泻`
 - default optional text fields to `无`
-- combine complaint, history, exam, diagnosis, treatment, medication, and parsed attachment text into `clean_text`
+- combine complaint, history, signs, exam, and parsed attachment text into `clean_text`
+- keep preliminary diagnosis, treatment, and medication as display-only fields; never include them in model features, which avoids label leakage
 - extract dictionary-based `symptoms`, `medical_terms`, and `tokens`
 
 ## 5. Attachment Parse Schema
@@ -121,10 +122,10 @@ When parsing fails, `parse_status` is `failed`, `extracted_text` is empty, and
   "treatment_taken": "已给予退热处理。",
   "medication_usage": "口服对乙酰氨基酚。",
   "generation_needs": ["record", "symptom", "diagnosis"],
-  "clean_text": "发热、咳嗽 3 天 3天前受凉后出现发热、咳嗽、乏力。 ...",
+  "clean_text": "发热、咳嗽 3 天 3天前受凉后出现发热、咳嗽、乏力。 体温 38.5℃ ...",
   "symptoms": ["发热", "咳嗽", "乏力", "咽部充血"],
-  "medical_terms": ["上呼吸道感染", "血常规", "白细胞"],
-  "tokens": ["发热", "咳嗽", "乏力", "咽部充血", "上呼吸道感染", "血常规", "白细胞"],
+  "medical_terms": ["血常规", "白细胞"],
+  "tokens": ["发热", "咳嗽", "乏力", "咽部充血", "血常规", "白细胞"],
   "source_schema": "frontend_case_v0.2"
 }
 ```
