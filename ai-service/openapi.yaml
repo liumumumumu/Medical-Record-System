@@ -69,6 +69,29 @@ paths:
           description: 请求超过 1 MB
         "500":
           description: AI 推理失败
+  /nlp/analyze/standardized:
+    post:
+      summary: CYL 标准化病例分析接口
+      description: 仅使用原始病情、病史、体征和检查字段推理，忽略 clean_text、人工诊断、治疗及用药等派生或标签字段。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StandardizedRequest"
+      responses:
+        "200":
+          description: 可映射到前端结果页的分区结果
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FrontendResult"
+        "400":
+          description: 字段校验失败
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 components:
   schemas:
     LegacyRequest:
@@ -100,14 +123,53 @@ components:
         physicalExam: {type: string}
         auxiliaryExam: {type: string}
         attachments:
-          type: array
-          items: {type: string}
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                oneOf:
+                  - type: string
+                  - type: object
         preliminaryDiagnosis: {type: string}
         treatmentTaken: {type: string}
         medicationUsage: {type: string}
         generationNeeds:
           type: array
           items: {type: string, enum: [record, symptom, diagnosis, treatment, full-report]}
+    StandardizedRequest:
+      type: object
+      required: [patient_name, gender, age, chief_complaint, present_illness, past_history]
+      properties:
+        patient_name: {type: string, maxLength: 30}
+        gender: {type: string, enum: [male, female]}
+        age: {type: integer, minimum: 0, maximum: 130}
+        department: {type: string}
+        visit_date: {type: string, format: date}
+        chief_complaint: {type: string, maxLength: 200}
+        present_illness: {type: string, maxLength: 1200}
+        past_history: {type: string, maxLength: 800}
+        allergy_history: {type: string}
+        vital_signs: {type: string}
+        physical_exam: {type: string}
+        auxiliary_exam: {type: string}
+        preliminary_diagnosis: {type: string, description: 仅回显，不参与推理}
+        treatment_taken: {type: string, description: 仅回显，不参与推理}
+        medication_usage: {type: string, description: 仅回显，不参与推理}
+        generation_needs:
+          type: array
+          items: {type: string, enum: [record, symptom, diagnosis, treatment, full-report]}
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              id: {type: string}
+              file_name: {type: string}
+              mime_type: {type: string}
+              parse_status: {type: string, enum: [pending, parsed, failed]}
+              extracted_text: {type: string}
+              failure_reason: {type: string}
+              confidence: {type: [number, "null"]}
     FrontendResult:
       type: object
       required: [status, generatedAt, processingTimeMs, model, summary, structuredRecord, analysis, attachments]
@@ -135,8 +197,23 @@ components:
             treatmentAdvice: {type: string}
             lowConfidence: {type: boolean}
             disclaimer: {type: string}
-        attachments: {type: array, items: {type: object}}
+        attachments:
+          type: array
+          items:
+            $ref: "#/components/schemas/AttachmentResult"
         failureReason: {type: [string, "null"]}
+    AttachmentResult:
+      type: object
+      required: [id, fileName, mimeType, url, processingStatus, extractedText, failureReason, confidence]
+      properties:
+        id: {type: string}
+        fileName: {type: string}
+        mimeType: {type: string}
+        url: {type: string}
+        processingStatus: {type: string, enum: [metadata_only, pending, parsed, failed]}
+        extractedText: {type: string}
+        failureReason: {type: string}
+        confidence: {type: [number, "null"]}
     ApiError:
       type: object
       required: [code, message, fieldErrors, requestId]

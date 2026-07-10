@@ -15,6 +15,74 @@ def _value(payload: dict[str, Any], camel: str, snake: str, default: Any = "") -
 
 
 @dataclass(frozen=True)
+class AttachmentInput:
+    identifier: str
+    file_name: str
+    mime_type: str = "application/octet-stream"
+    url: str = ""
+    processing_status: str = "metadata_only"
+    extracted_text: str = ""
+    failure_reason: str = ""
+    confidence: Any = None
+
+
+def _attachments(payload: dict[str, Any]) -> tuple[AttachmentInput, ...]:
+    raw_attachments = payload.get("attachments", ())
+    if isinstance(raw_attachments, str):
+        values: list[Any] = [
+            item.strip() for item in raw_attachments.split(" / ") if item.strip()
+        ]
+    elif isinstance(raw_attachments, list):
+        values = raw_attachments
+    else:
+        return ()
+
+    attachments: list[AttachmentInput] = []
+    for index, value in enumerate(values, start=1):
+        if isinstance(value, str):
+            file_name = value.strip()
+            if not file_name:
+                continue
+            attachments.append(
+                AttachmentInput(identifier=f"input_{index}", file_name=file_name)
+            )
+            continue
+        if not isinstance(value, dict):
+            continue
+        file_name = str(
+            value.get("fileName") or value.get("file_name") or value.get("name") or ""
+        ).strip()
+        if not file_name:
+            continue
+        attachments.append(
+            AttachmentInput(
+                identifier=str(value.get("id") or f"input_{index}"),
+                file_name=file_name,
+                mime_type=str(
+                    value.get("mimeType")
+                    or value.get("mime_type")
+                    or "application/octet-stream"
+                ),
+                url=str(value.get("url") or ""),
+                processing_status=str(
+                    value.get("processingStatus")
+                    or value.get("parseStatus")
+                    or value.get("parse_status")
+                    or "metadata_only"
+                ),
+                extracted_text=str(
+                    value.get("extractedText") or value.get("extracted_text") or ""
+                ),
+                failure_reason=str(
+                    value.get("failureReason") or value.get("failure_reason") or ""
+                ),
+                confidence=value.get("confidence"),
+            )
+        )
+    return tuple(attachments)
+
+
+@dataclass(frozen=True)
 class PatientInput:
     name: str
     gender: str
@@ -33,14 +101,19 @@ class PatientInput:
     treatment_taken: str = ""
     medication_usage: str = ""
     generation_needs: tuple[str, ...] = ()
-    attachments: tuple[str, ...] = ()
+    attachments: tuple[AttachmentInput, ...] = ()
 
     @classmethod
     def from_payload(cls, payload: Any) -> "PatientInput":
         if not isinstance(payload, dict):
             raise ValidationError("请求体必须是 JSON 对象")
 
-        name = str(payload.get("patientName", _value(payload, "name", "name", ""))).strip()
+        name = str(
+            payload.get(
+                "patientName",
+                payload.get("patient_name", _value(payload, "name", "name", "")),
+            )
+        ).strip()
         raw_gender = str(_value(payload, "gender", "gender", "")).strip()
         gender = {"male": "男", "female": "女"}.get(raw_gender, raw_gender)
         raw_age = _value(payload, "age", "age", None)
@@ -50,7 +123,15 @@ class PatientInput:
         history_present_illness = str(
             payload.get(
                 "presentIllness",
-                _value(payload, "historyPresentIllness", "history_present_illness", ""),
+                payload.get(
+                    "present_illness",
+                    _value(
+                        payload,
+                        "historyPresentIllness",
+                        "history_present_illness",
+                        "",
+                    ),
+                ),
             )
         ).strip()
 
@@ -79,23 +160,15 @@ class PatientInput:
                 {"age": "年龄必须在 0 至 130 之间"},
             )
 
-        raw_needs = payload.get("generationNeeds", ())
+        raw_needs = payload.get(
+            "generationNeeds", payload.get("generation_needs", ())
+        )
         if isinstance(raw_needs, str):
             generation_needs = (raw_needs,) if raw_needs else ()
         elif isinstance(raw_needs, list):
             generation_needs = tuple(str(item) for item in raw_needs if str(item).strip())
         else:
             generation_needs = ()
-
-        raw_attachments = payload.get("attachments", ())
-        if isinstance(raw_attachments, str):
-            attachments = tuple(
-                item.strip() for item in raw_attachments.split(" / ") if item.strip()
-            )
-        elif isinstance(raw_attachments, list):
-            attachments = tuple(str(item) for item in raw_attachments if str(item).strip())
-        else:
-            attachments = ()
 
         return cls(
             name=name,
@@ -112,20 +185,39 @@ class PatientInput:
             lab_results=str(
                 payload.get(
                     "auxiliaryExam",
-                    _value(payload, "labResults", "lab_results", "未提供"),
+                    payload.get(
+                        "auxiliary_exam",
+                        _value(payload, "labResults", "lab_results", "未提供"),
+                    ),
                 )
                 or "未提供"
             ).strip(),
             gender_code=raw_gender if raw_gender in {"male", "female"} else "",
             department=str(payload.get("department", "")).strip(),
-            visit_date=str(payload.get("visitDate", "")).strip(),
-            allergy_history=str(payload.get("allergyHistory", "未提供") or "未提供").strip(),
-            vital_signs=str(payload.get("vitalSigns", "未提供") or "未提供").strip(),
-            preliminary_diagnosis=str(payload.get("preliminaryDiagnosis", "")).strip(),
-            treatment_taken=str(payload.get("treatmentTaken", "")).strip(),
-            medication_usage=str(payload.get("medicationUsage", "")).strip(),
+            visit_date=str(
+                payload.get("visitDate", payload.get("visit_date", ""))
+            ).strip(),
+            allergy_history=str(
+                payload.get("allergyHistory", payload.get("allergy_history", "未提供"))
+                or "未提供"
+            ).strip(),
+            vital_signs=str(
+                payload.get("vitalSigns", payload.get("vital_signs", "未提供"))
+                or "未提供"
+            ).strip(),
+            preliminary_diagnosis=str(
+                payload.get(
+                    "preliminaryDiagnosis", payload.get("preliminary_diagnosis", "")
+                )
+            ).strip(),
+            treatment_taken=str(
+                payload.get("treatmentTaken", payload.get("treatment_taken", ""))
+            ).strip(),
+            medication_usage=str(
+                payload.get("medicationUsage", payload.get("medication_usage", ""))
+            ).strip(),
             generation_needs=generation_needs,
-            attachments=attachments,
+            attachments=_attachments(payload),
         )
 
     def model_text(self) -> str:

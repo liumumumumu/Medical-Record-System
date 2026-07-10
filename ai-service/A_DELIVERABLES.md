@@ -26,6 +26,7 @@
 - [x] `GET /metadata`：模型版本、类别、指标和运行限制。
 - [x] `POST /nlp/analyze`：兼容原四人计划的轻量接口。
 - [x] `POST /nlp/analyze/frontend`：对齐 CYH 分支 17 个字段和分区结果。
+- [x] `POST /nlp/analyze/standardized`：对齐 CYL 标准化病例字段并阻断标签泄漏。
 - [x] 兼容 camelCase、snake_case 和 CYH 前端命名。
 - [x] 低置信度拒答、危险信号、1MB 请求限制和统一 UTF-8 JSON。
 - [x] 稳定免责声明，不输出具体药物处方和剂量。

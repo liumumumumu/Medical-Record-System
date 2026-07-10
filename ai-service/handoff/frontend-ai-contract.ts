@@ -15,7 +15,7 @@ export type FrontendCaseRequest = {
   vitalSigns?: string;
   physicalExam?: string;
   auxiliaryExam?: string;
-  attachments?: string[];
+  attachments?: string | string[];
   preliminaryDiagnosis?: string;
   treatmentTaken?: string;
   medicationUsage?: string;
@@ -70,7 +70,10 @@ export type FrontendAnalysisResult = {
     fileName: string;
     mimeType: string;
     url: string;
-    processingStatus: "metadata_only";
+    processingStatus: "metadata_only" | "pending" | "parsed" | "failed";
+    extractedText: string;
+    failureReason: string;
+    confidence: number | null;
   }>;
   failureReason: null;
 };

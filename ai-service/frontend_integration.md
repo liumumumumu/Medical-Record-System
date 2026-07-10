@@ -10,6 +10,8 @@
 
 本服务不改动前端同学代码，而是提供与该提交字段完全兼容的 `POST /nlp/analyze/frontend`。推荐正式调用链仍为 `React -> SpringBoot -> Flask`；课程联调阶段也可由前端直连该端点验证结果结构。
 
+CYL 数据处理结果应调用 `POST /nlp/analyze/standardized`。该端点白名单映射 CYL 的 snake_case 字段，响应结构与前端端点一致，因此后端无需维护两套 AI 响应 DTO。
+
 ## 输入字段映射
 
 | CYH 前端字段 | AI 内部字段 | 处理方式 |
@@ -41,7 +43,7 @@ v2 响应直接分为：
 - `summary`：对应结果页病例摘要。
 - `structuredRecord`：对应现病史、既往史、过敏史、生命体征、体格检查、辅助检查和完整生成病历。
 - `analysis`：保留人工输入，并增加症状、术语、Top-1/Top-3、理由、安全建议、低置信度和免责声明。
-- `attachments`：当前只标记 `metadata_only`；真实文件 URL 和解析结果由后端/数据处理成员补充。
+- `attachments`：前端只有文件名时标记 `metadata_only`；CYL 已解析的附件会保留 `parsed/failed/pending` 状态。真实文件 URL 仍由后端文件服务补充。
 - `model`：模型名、版本、融合置信分和低置信标记。
 
 前端当前 `GeneratedRecord` 仍只有 `{id, generatedAt, values}`，接入时应改为 `handoff/frontend-ai-contract.ts` 中的 `FrontendAnalysisResult`，不要再把 AI 数据塞回原始表单字段。

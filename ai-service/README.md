@@ -83,7 +83,7 @@ Invoke-RestMethod -Method Post -Uri http://localhost:5000/nlp/analyze `
 
 完整字段和错误格式见 `api_document.md`。若模型文件缺失，服务仍可启动并使用知识检索和规则，但 `/health` 会把 `modelLoaded` 标为 `false`。
 
-CYH 前端的 17 字段请求应调用 `POST /nlp/analyze/frontend`；响应可直接映射到 `summary`、`structuredRecord`、`analysis` 和 `attachments`。详细映射见 `frontend_integration.md`，TypeScript 类型见 `handoff/frontend-ai-contract.ts`。
+CYH 前端的 17 字段请求应调用 `POST /nlp/analyze/frontend`；CYL 标准化 snake_case 病例应调用 `POST /nlp/analyze/standardized`。两者响应均可直接映射到 `summary`、`structuredRecord`、`analysis` 和 `attachments`。详细映射见 `frontend_integration.md`，TypeScript 类型见 `handoff/frontend-ai-contract.ts`。
 
 ## 安全边界
 

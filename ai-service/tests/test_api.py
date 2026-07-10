@@ -35,6 +35,41 @@ FRONTEND_PAYLOAD = {
     "generationNeeds": ["record", "diagnosis", "full-report"],
 }
 
+STANDARDIZED_PAYLOAD = {
+    "patient_name": "张某",
+    "gender": "male",
+    "age": 32,
+    "department": "internal",
+    "visit_date": "2026-07-10",
+    "chief_complaint": "发热、咳嗽 3 天",
+    "present_illness": "3天前受凉后出现发热、咳嗽、乏力，无明显气促。",
+    "past_history": "无高血压、糖尿病史。",
+    "allergy_history": "无",
+    "vital_signs": "体温 38.5℃，脉搏 88 次/分。",
+    "physical_exam": "咽部充血，双肺未闻及明显湿啰音。",
+    "auxiliary_exam": "血常规提示白细胞轻度升高。",
+    "preliminary_diagnosis": "上呼吸道感染",
+    "treatment_taken": "已给予退热处理。",
+    "medication_usage": "口服对乙酰氨基酚。",
+    "generation_needs": ["record", "symptom", "diagnosis"],
+    "attachments": [
+        {
+            "id": "file_01",
+            "file_name": "blood-test.pdf",
+            "mime_type": "application/pdf",
+            "parse_status": "parsed",
+            "extracted_text": "白细胞轻度升高，C反应蛋白轻度升高。",
+            "failure_reason": "",
+            "confidence": 0.93,
+        }
+    ],
+    "clean_text": "不可信派生文本：腹痛、腹泻、肺炎、处方药。",
+    "symptoms": ["腹泻"],
+    "medical_terms": ["肺炎"],
+    "tokens": ["腹泻", "肺炎"],
+    "source_schema": "frontend_case_v0.2",
+}
+
 
 def test_health_contract():
     client = create_app().test_client()
@@ -127,6 +162,80 @@ def test_frontend_validation_error_maps_field_names():
     assert response.json["code"] == "VALIDATION_ERROR"
     assert response.json["fieldErrors"] == {"presentIllness": "该字段为必填项"}
     assert response.json["requestId"].startswith("req_")
+
+
+def test_standardized_case_contract_and_attachment_metadata():
+    response = create_app().test_client().post(
+        "/nlp/analyze/standardized", json=STANDARDIZED_PAYLOAD
+    )
+    assert response.status_code == 200
+    assert response.json["summary"]["patientName"] == "张某"
+    assert response.json["structuredRecord"]["presentIllness"] == (
+        STANDARDIZED_PAYLOAD["present_illness"]
+    )
+    assert response.json["attachments"][0] == {
+        "id": "file_01",
+        "fileName": "blood-test.pdf",
+        "mimeType": "application/pdf",
+        "url": "",
+        "processingStatus": "parsed",
+        "extractedText": "白细胞轻度升高，C反应蛋白轻度升高。",
+        "failureReason": "",
+        "confidence": 0.93,
+    }
+    assert "不替代医生诊断" in response.json["analysis"]["disclaimer"]
+
+
+def test_standardized_case_ignores_derived_and_label_fields_for_inference():
+    client = create_app().test_client()
+    baseline = dict(STANDARDIZED_PAYLOAD)
+    baseline.update(
+        {
+            "clean_text": "",
+            "symptoms": [],
+            "medical_terms": [],
+            "tokens": [],
+            "preliminary_diagnosis": "",
+            "treatment_taken": "",
+            "medication_usage": "",
+        }
+    )
+    baseline_analysis = client.post(
+        "/nlp/analyze/standardized", json=baseline
+    ).json["analysis"]
+    poisoned_analysis = client.post(
+        "/nlp/analyze/standardized", json=STANDARDIZED_PAYLOAD
+    ).json["analysis"]
+
+    for field in (
+        "symptoms",
+        "medicalTerms",
+        "diagnosisTop1",
+        "diagnosisCandidates",
+        "diagnosisReason",
+    ):
+        assert poisoned_analysis[field] == baseline_analysis[field]
+
+
+def test_standardized_case_validation_uses_snake_case_fields():
+    payload = dict(STANDARDIZED_PAYLOAD)
+    payload["present_illness"] = ""
+    response = create_app().test_client().post(
+        "/nlp/analyze/standardized", json=payload
+    )
+    assert response.status_code == 400
+    assert response.json["code"] == "VALIDATION_ERROR"
+    assert response.json["fieldErrors"] == {"present_illness": "该字段为必填项"}
+
+    payload = dict(STANDARDIZED_PAYLOAD)
+    payload["chief_complaint"] = "咳嗽" * 101
+    response = create_app().test_client().post(
+        "/nlp/analyze/standardized", json=payload
+    )
+    assert response.status_code == 400
+    assert response.json["fieldErrors"] == {
+        "chief_complaint": "不能超过 200 个字符"
+    }
 
 
 def test_metadata_exposes_model_and_limits():

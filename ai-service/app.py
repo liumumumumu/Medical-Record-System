@@ -98,6 +98,38 @@ def create_app(service: MedicalAIService | None = None) -> Flask:
                 500,
             )
 
+    @app.post("/nlp/analyze/standardized")
+    def analyze_standardized():
+        request_id = f"req_{uuid4().hex[:12]}"
+        try:
+            payload = request.get_json(silent=False)
+            return jsonify(ai_service.analyze_standardized(payload))
+        except ValidationError as error:
+            return (
+                jsonify(
+                    {
+                        "code": "VALIDATION_ERROR",
+                        "message": str(error),
+                        "fieldErrors": error.field_errors,
+                        "requestId": request_id,
+                    }
+                ),
+                400,
+            )
+        except Exception:
+            app.logger.exception("Standardized-case AI analysis failed")
+            return (
+                jsonify(
+                    {
+                        "code": "AI_PROCESSING_FAILED",
+                        "message": "AI 分析失败，请稍后重试",
+                        "fieldErrors": {},
+                        "requestId": request_id,
+                    }
+                ),
+                500,
+            )
+
     @app.errorhandler(400)
     def bad_request(_error):
         return jsonify({"code": 400, "message": "请求体必须是有效 JSON", "data": None}), 400

@@ -58,6 +58,14 @@
 }
 ```
 
+## CYL 标准化病例分析
+
+`POST /nlp/analyze/standardized`
+
+该端点接收 CYL 分支输出的 snake_case 病例，完整示例见 `handoff/standardized_request.example.json`。成功响应与 `/nlp/analyze/frontend` 相同，标准化附件对象会保留文件名、MIME 类型、解析状态、失败原因和置信度。
+
+服务只从 `chief_complaint`、`present_illness`、`past_history`、`allergy_history`、`vital_signs`、`physical_exam` 和 `auxiliary_exam` 读取模型证据。为避免标签泄漏，输入中的 `clean_text`、`symptoms`、`medical_terms`、`tokens`、`preliminary_diagnosis`、`treatment_taken` 和 `medication_usage` 不参与推理；后三项仅在响应中原样保留。
+
 ## 轻量病历分析（原计划兼容）
 
 `POST /nlp/analyze`
@@ -79,7 +87,7 @@
 }
 ```
 
-`name`、`gender`、`age`、`chiefComplaint`、`historyPresentIllness` 必填；年龄必须为 0–130 的整数。其余字段缺省时按“未提供”处理。服务同时接受 `chief_complaint`、`history_present_illness`、`past_history`、`physical_exam`、`lab_results`。
+`name`、`gender`、`age`、`chiefComplaint`、`historyPresentIllness` 必填；年龄必须为 0–130 的整数。其余字段缺省时按“未提供”处理。服务同时接受 `chief_complaint`、`history_present_illness`、`past_history`、`physical_exam`、`lab_results`。CYL 的完整标准化对象应使用上面的专用端点。
 
 成功响应为原始 `AnalysisResult`，不再额外包一层 `data`：
 

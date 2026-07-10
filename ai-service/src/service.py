@@ -12,6 +12,27 @@ from src.treatment_advisor import DISCLAIMER, TreatmentAdvisor
 from src.text_utils import unique_preserve
 
 
+STANDARDIZED_TO_FRONTEND = {
+    "patient_name": "patientName",
+    "gender": "gender",
+    "age": "age",
+    "department": "department",
+    "visit_date": "visitDate",
+    "chief_complaint": "chiefComplaint",
+    "present_illness": "presentIllness",
+    "past_history": "pastHistory",
+    "allergy_history": "allergyHistory",
+    "vital_signs": "vitalSigns",
+    "physical_exam": "physicalExam",
+    "auxiliary_exam": "auxiliaryExam",
+    "attachments": "attachments",
+    "preliminary_diagnosis": "preliminaryDiagnosis",
+    "treatment_taken": "treatmentTaken",
+    "medication_usage": "medicationUsage",
+    "generation_needs": "generationNeeds",
+}
+
+
 class MedicalAIService:
     def __init__(self) -> None:
         self.symptom_extractor = SymptomExtractor()
@@ -140,13 +161,16 @@ class MedicalAIService:
         )
         attachments = [
             {
-                "id": f"input_{index}",
-                "fileName": file_name,
-                "mimeType": "application/octet-stream",
-                "url": "",
-                "processingStatus": "metadata_only",
+                "id": attachment.identifier,
+                "fileName": attachment.file_name,
+                "mimeType": attachment.mime_type,
+                "url": attachment.url,
+                "processingStatus": attachment.processing_status,
+                "extractedText": attachment.extracted_text,
+                "failureReason": attachment.failure_reason,
+                "confidence": attachment.confidence,
             }
-            for index, file_name in enumerate(patient.attachments, start=1)
+            for attachment in patient.attachments
         ]
         return {
             "status": "completed",
@@ -196,3 +220,52 @@ class MedicalAIService:
             "attachments": attachments,
             "failureReason": None,
         }
+
+    def analyze_standardized(self, payload: dict) -> dict[str, object]:
+        if not isinstance(payload, dict):
+            raise ValidationError("请求体必须是 JSON 对象")
+        required_fields = (
+            "patient_name",
+            "gender",
+            "age",
+            "chief_complaint",
+            "present_illness",
+            "past_history",
+        )
+        field_errors = {
+            field: "该字段为必填项"
+            for field in required_fields
+            if field not in payload
+            or payload[field] is None
+            or (isinstance(payload[field], str) and not payload[field].strip())
+        }
+        text_limits = {
+            "patient_name": 30,
+            "chief_complaint": 200,
+            "present_illness": 1200,
+            "past_history": 800,
+        }
+        for field, maximum in text_limits.items():
+            value = payload.get(field)
+            if isinstance(value, str) and len(value) > maximum:
+                field_errors[field] = f"不能超过 {maximum} 个字符"
+        if payload.get("gender") not in {None, "", "male", "female"}:
+            field_errors["gender"] = "性别必须为 male 或 female"
+        raw_needs = payload.get("generation_needs", [])
+        allowed_needs = {"record", "symptom", "diagnosis", "treatment", "full-report"}
+        if not isinstance(raw_needs, list) or any(
+            item not in allowed_needs for item in raw_needs
+        ):
+            field_errors["generation_needs"] = "生成需求枚举值无效"
+        if field_errors:
+            raise ValidationError(
+                f"缺少或无效字段: {', '.join(field_errors)}",
+                field_errors,
+            )
+
+        frontend_payload = {
+            frontend_field: payload[standardized_field]
+            for standardized_field, frontend_field in STANDARDIZED_TO_FRONTEND.items()
+            if standardized_field in payload
+        }
+        return self.analyze_frontend(frontend_payload)

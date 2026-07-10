@@ -1,0 +1,30 @@
+{
+  "patient_name": "张某",
+  "gender": "male",
+  "age": 32,
+  "department": "internal",
+  "visit_date": "2026-07-10",
+  "chief_complaint": "发热、咳嗽 3 天",
+  "present_illness": "3天前受凉后出现发热、咳嗽、乏力，无明显气促。",
+  "past_history": "无高血压、糖尿病史。",
+  "allergy_history": "无",
+  "vital_signs": "体温 38.5℃，脉搏 88 次/分。",
+  "physical_exam": "咽部充血，双肺未闻及明显湿啰音。",
+  "auxiliary_exam": "血常规提示白细胞轻度升高。",
+  "preliminary_diagnosis": "上呼吸道感染",
+  "treatment_taken": "已给予退热处理。",
+  "medication_usage": "口服对乙酰氨基酚。",
+  "generation_needs": ["record", "symptom", "diagnosis"],
+  "attachments": [
+    {
+      "id": "file_01",
+      "file_name": "blood-test.pdf",
+      "mime_type": "application/pdf",
+      "parse_status": "parsed",
+      "extracted_text": "白细胞轻度升高，C反应蛋白轻度升高。",
+      "failure_reason": "",
+      "confidence": 0.93
+    }
+  ],
+  "source_schema": "frontend_case_v0.2"
+}
