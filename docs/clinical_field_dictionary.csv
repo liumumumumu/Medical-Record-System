@@ -1,0 +1,18 @@
+frontend_field,standard_field,chinese_name,required,allowed_values_or_rule,description
+patientName,patient_name,姓名,yes,max 30 chars,前端录入姓名；演示数据使用脱敏姓名
+gender,gender,性别,yes,male/female,保持前端英文枚举
+age,age,年龄,yes,integer 0-130,单位为岁
+department,department,就诊科室,no,internal/surgery/pediatrics/emergency/other,缺省为 other
+visitDate,visit_date,就诊日期,no,YYYY-MM-DD,ISO 日期，不带时区
+chiefComplaint,chief_complaint,主诉,yes,max 200 chars,用于首屏和 AI 主诉分析
+presentIllness,present_illness,现病史,yes,max 1200 chars,用于病情过程分析
+pastHistory,past_history,既往病史,yes,max 800 chars,无内容时填写或标准化为“无”
+allergyHistory,allergy_history,过敏史,no,text,缺省为“无”
+vitalSigns,vital_signs,生命体征,no,text,暂按文本处理
+physicalExam,physical_exam,体格检查,no,text,暂按文本处理
+auxiliaryExam,auxiliary_exam,辅助检查结果,no,text,影像和化验摘要
+attachments,attachments,上传检查资料,no,list,包含文件名、MIME、解析状态、抽取文本或失败原因
+preliminaryDiagnosis,preliminary_diagnosis,初步诊断,no,text,人工输入，不等同 AI 最终结果
+treatmentTaken,treatment_taken,已采取治疗,no,text,人工输入
+medicationUsage,medication_usage,用药情况,no,text,人工输入
+generationNeeds,generation_needs,生成需求,no,record/symptom/diagnosis/treatment/full-report,缺省为 record/symptom/diagnosis

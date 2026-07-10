@@ -6,6 +6,11 @@ The current workflow uses NHANES 2017-2018 public-use data. Seven tables are
 included: `DEMO_J`, `BMX_J`, `BPX_J`, `BIOPRO_J`, `CBC_J`, `GHB_J`, and
 `ALB_CR_J`.
 
+The repository also includes fictional, desensitized clinical case samples for
+frontend/backend/AI handoff. These samples are stored under
+`data/clinical_cases/` and follow the frontend field contract documented in
+`docs/data_schema.md`.
+
 ## Merge Rule
 
 `DEMO_J` is used as the base table. All other tables are left-joined by `SEQN`.
@@ -23,6 +28,24 @@ The merged table contains 9254 rows and 155 columns.
    pressure measurements.
 7. Convert extremely small placeholder values below `1e-50` into missing values
    in the standardized workflow.
+
+## Clinical Case Preprocessing Rule
+
+`scripts/preprocess.py` handles user-submitted clinical case data:
+
+1. Validate required frontend fields and keep validation errors keyed by
+   lowerCamelCase field names.
+2. Convert frontend fields such as `patientName`, `chiefComplaint`, and
+   `presentIllness` into snake_case fields for AI/NLP modules.
+3. Remove HTML tags, normalize whitespace and repeated punctuation, and apply
+   synonym mapping such as `发烧 -> 发热` and `拉肚子 -> 腹泻`.
+4. Standardize attachments into file name, MIME type, parse status, extracted
+   text, failure reason, and confidence fields.
+5. Build `clean_text`, `symptoms`, `medical_terms`, and `tokens` for AI
+   analysis.
+
+`scripts/feature_builder.py` creates dictionary-based keyword features from the
+clinical train/test/demo CSV files.
 
 ## Data Quality Rule
 

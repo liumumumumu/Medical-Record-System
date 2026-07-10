@@ -4,6 +4,8 @@
 
 本模块负责医疗数据的采集、整理、标准化、质量检查和分析数据集生成。当前使用 NHANES 2017-2018 公开数据作为项目的数据基础，重点围绕患者基本信息、身体测量、血压、生化指标、血常规、糖化血红蛋白、尿白蛋白/肌酐等检测数据展开。
 
+同时，为了对接当前《前后端与 AI 交接规范》，本模块新增了病例录入字段清洗与标准化部分，负责把前端 lowerCamelCase 字段转换为 AI/NLP 模块使用的 snake_case 字段，并提供症状词典、医学术语词典、停用词、同义词、训练/测试/演示样例数据。
+
 ## 数据来源
 
 数据来源为 NHANES 2017-2018 公开数据集，使用了 7 张原始表：
@@ -60,6 +62,30 @@ python scripts/run_pipeline.py
 | `nhanes_cardiovascular_analysis.csv` | 心血管方向分析子集 | 5525 行，12 列 |
 | `nhanes_analysis_subset_summary.csv` | 三个分析子集的行列数汇总 | 3 行，4 列 |
 | `nhanes_output_validation.csv` | 输出文件校验结果 | 8 行，4 列 |
+
+## 病例字段清洗交付物
+
+| 文件 | 说明 |
+| --- | --- |
+| `docs/data_schema.md` | 前端、后端、数据处理、AI 共同使用的病例字段规范 |
+| `docs/clinical_field_dictionary.csv` | 前端字段到标准字段的映射字典 |
+| `scripts/preprocess.py` | 病例字段校验、清洗、同义词标准化、token 抽取脚本 |
+| `scripts/feature_builder.py` | 基于症状词典和医学术语词典生成关键词特征 |
+| `data/resources/symptom_dict.txt` | 症状词典 |
+| `data/resources/medical_terms.txt` | 医学术语词典 |
+| `data/resources/stopwords.txt` | 停用词表 |
+| `data/resources/synonyms.json` | 同义词映射表 |
+| `data/clinical_cases/demo_cases.json` | 3 条端到端联调样例：正常、字段不全、附件解析失败 |
+| `data/clinical_cases/demo_data.csv` | 10 条脱敏演示样例 |
+| `data/clinical_cases/train.csv` | 训练样例数据 |
+| `data/clinical_cases/test.csv` | 测试样例数据 |
+
+病例预处理可通过以下命令运行：
+
+```bash
+python scripts/preprocess.py
+python scripts/feature_builder.py
+```
 
 ## 数据质量结论
 

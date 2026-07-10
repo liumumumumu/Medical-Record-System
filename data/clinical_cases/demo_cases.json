@@ -1,0 +1,71 @@
+[
+  {
+    "caseId": "demo_case_001",
+    "patientName": "张某",
+    "gender": "male",
+    "age": 32,
+    "department": "internal",
+    "visitDate": "2026-07-10",
+    "chiefComplaint": "发烧、咳嗽 3 天",
+    "presentIllness": "3天前受凉后出现发烧、咳嗽、乏力，无明显气促。",
+    "pastHistory": "无高血压、糖尿病史。",
+    "allergyHistory": "无",
+    "vitalSigns": "体温 38.5℃，脉搏 88 次/分。",
+    "physicalExam": "咽部充血，双肺未闻及明显湿啰音。",
+    "auxiliaryExam": "血常规提示白细胞轻度升高。",
+    "preliminaryDiagnosis": "上呼吸道感染",
+    "treatmentTaken": "已给予退热处理。",
+    "medicationUsage": "口服对乙酰氨基酚。",
+    "generationNeeds": ["record", "symptom", "diagnosis"],
+    "attachments": [
+      {
+        "id": "file_01",
+        "fileName": "blood-test.pdf",
+        "mimeType": "application/pdf",
+        "parseStatus": "parsed",
+        "extractedText": "白细胞轻度升高，C反应蛋白轻度升高。"
+      }
+    ]
+  },
+  {
+    "caseId": "demo_case_002",
+    "patientName": "李某",
+    "gender": "female",
+    "age": 28,
+    "department": "emergency",
+    "visitDate": "2026-07-10",
+    "chiefComplaint": "腹痛、拉肚子 1 天",
+    "presentIllness": "进食不洁食物后出现腹痛、拉肚子，伴恶心。",
+    "pastHistory": "无",
+    "generationNeeds": ["record", "symptom"],
+    "attachments": []
+  },
+  {
+    "caseId": "demo_case_003",
+    "patientName": "王某",
+    "gender": "male",
+    "age": 45,
+    "department": "internal",
+    "visitDate": "2026-07-10",
+    "chiefComplaint": "胸闷、咳痰 2 天",
+    "presentIllness": "2天前出现胸闷、咳痰，偶有气促。",
+    "pastHistory": "有高血压病史。",
+    "allergyHistory": "无",
+    "vitalSigns": "血压 146/92 mmHg。",
+    "physicalExam": "双肺呼吸音稍粗。",
+    "auxiliaryExam": "患者自带胸片照片，文字暂无法识别。",
+    "preliminaryDiagnosis": "肺炎待排",
+    "treatmentTaken": "建议进一步完善检查。",
+    "medicationUsage": "暂未用药。",
+    "generationNeeds": ["record", "diagnosis", "full-report"],
+    "attachments": [
+      {
+        "id": "file_01",
+        "fileName": "blurred-chest-xray.jpg",
+        "mimeType": "image/jpeg",
+        "parseStatus": "failed",
+        "failureReason": "图片模糊，无法可靠识别文字。"
+      }
+    ]
+  }
+]

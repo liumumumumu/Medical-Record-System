@@ -7,6 +7,11 @@ Medical Record Generation and Analysis System.
 This branch contains the NHANES 2017-2018 data processing workflow used by the
 data processing and standardization module.
 
+It now contains two data-processing parts:
+
+1. NHANES numeric indicator processing for large public health data analysis.
+2. Clinical case preprocessing for frontend/backend/AI field handoff.
+
 ### Dataset
 
 Raw NHANES files are stored in:
@@ -49,6 +54,44 @@ python scripts/standardize_nhanes.py
 python scripts/analyze_data_quality.py
 python scripts/create_analysis_subsets.py
 python scripts/validate_outputs.py
+```
+
+### Clinical Case Preprocessing
+
+The clinical case preprocessing module follows the frontend field contract from
+`前后端与 AI 交接规范.md`. It maps lowerCamelCase request fields such as
+`patientName`, `chiefComplaint`, and `presentIllness` into snake_case fields for
+Python AI/NLP modules.
+
+Run:
+
+```bash
+python scripts/preprocess.py
+python scripts/feature_builder.py
+```
+
+Resources and samples:
+
+```text
+data/resources/symptom_dict.txt
+data/resources/medical_terms.txt
+data/resources/stopwords.txt
+data/resources/synonyms.json
+data/clinical_cases/demo_cases.json
+data/clinical_cases/demo_data.csv
+data/clinical_cases/train.csv
+data/clinical_cases/test.csv
+docs/data_schema.md
+docs/clinical_field_dictionary.csv
+```
+
+Generated outputs:
+
+```text
+data/processed/clinical_cases_standardized.json
+data/processed/train_keyword_features.csv
+data/processed/test_keyword_features.csv
+data/processed/demo_data_keyword_features.csv
 ```
 
 ### Outputs
