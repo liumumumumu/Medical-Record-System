@@ -24,6 +24,42 @@ The merged table contains 9254 rows and 155 columns.
 7. Convert extremely small placeholder values below `1e-50` into missing values
    in the standardized workflow.
 
+## Data Quality Rule
+
+`scripts/analyze_data_quality.py` reads `nhanes_standardized.csv` and generates
+two quality-control outputs:
+
+1. `nhanes_quality_summary.csv`: missing count, missing rate, unique count,
+   mean, standard deviation, quartiles, minimum, and maximum for each column.
+2. `nhanes_outlier_summary.csv`: review-range checks for key clinical
+   indicators, including BMI, blood pressure, glucose, creatinine, cholesterol,
+   triglycerides, HbA1c, and urine albumin/creatinine ratio.
+
+The outlier summary is a review aid. Values flagged by these rules should be
+checked before modeling or visualization rather than deleted automatically.
+
+## Analysis Subset Rule
+
+`scripts/create_analysis_subsets.py` reads `nhanes_standardized.csv` and creates
+three task-specific datasets:
+
+1. `nhanes_diabetes_analysis.csv`: age, BMI, waist, blood pressure, glucose, and
+   HbA1c indicators.
+2. `nhanes_kidney_analysis.csv`: age, blood pressure, blood urea nitrogen,
+   creatinine, uric acid, urine albumin, urine creatinine, and albumin/creatinine
+   ratio.
+3. `nhanes_cardiovascular_analysis.csv`: age, BMI, waist, blood pressure, pulse,
+   cholesterol, triglycerides, glucose, and HbA1c indicators.
+
+Rows with missing task-critical indicators are removed in each subset, while the
+full standardized table is kept unchanged.
+
+## Output Validation Rule
+
+`scripts/validate_outputs.py` checks whether the generated CSV files exist and
+match the expected row and column counts. It writes
+`nhanes_output_validation.csv` as a machine-readable validation summary.
+
 ## Outputs
 
 | File | Description |
@@ -31,7 +67,19 @@ The merged table contains 9254 rows and 155 columns.
 | `data/processed/nhanes_merged.csv` | Full merged table |
 | `data/processed/nhanes_missing_summary.csv` | Missing count and missing rate for each merged column |
 | `data/processed/nhanes_standardized.csv` | Selected standardized analysis table |
+| `data/processed/nhanes_quality_summary.csv` | Data quality summary for standardized fields |
+| `data/processed/nhanes_outlier_summary.csv` | Outlier review summary for key clinical indicators |
+| `data/processed/nhanes_diabetes_analysis.csv` | Diabetes-focused analysis table |
+| `data/processed/nhanes_kidney_analysis.csv` | Kidney-focused analysis table |
+| `data/processed/nhanes_cardiovascular_analysis.csv` | Cardiovascular-focused analysis table |
+| `data/processed/nhanes_analysis_subset_summary.csv` | Row and column counts for analysis subsets |
+| `data/processed/nhanes_output_validation.csv` | Output shape validation summary |
 
 ## Current Result
 
 The standardized table contains 9254 rows and 34 columns.
+The current quality summary contains 34 rows, and the outlier summary checks 9
+key clinical indicators.
+The current analysis subsets contain 5804 diabetes rows, 5798 kidney rows, and
+5525 cardiovascular rows.
+The current output validation summary checks 8 generated CSV files.
