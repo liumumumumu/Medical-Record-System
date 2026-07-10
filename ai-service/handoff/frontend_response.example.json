@@ -1,0 +1,54 @@
+{
+  "status": "completed",
+  "generatedAt": "2026-07-10T12:00:00+00:00",
+  "processingTimeMs": 6.4,
+  "model": {
+    "name": "medical-record-hybrid-diagnosis",
+    "version": "1.0.0",
+    "confidence": 0.537208,
+    "lowConfidence": false
+  },
+  "summary": {
+    "patientName": "演示患者",
+    "gender": "female",
+    "age": 30,
+    "department": "internal",
+    "visitDate": "2026-07-10",
+    "chiefComplaint": "高热咳嗽伴全身酸痛2天"
+  },
+  "structuredRecord": {
+    "presentIllness": "突然高烧39.5℃，全身乏力、肌肉酸痛、头痛并咳嗽",
+    "pastHistory": "无高血压糖尿病史",
+    "allergyHistory": "无",
+    "vitalSigns": "体温39.5℃，血压120/80mmHg",
+    "physicalExam": "未见明显异常",
+    "auxiliaryExam": "白细胞正常",
+    "generatedRecord": "一、基本信息……九、处理建议……"
+  },
+  "analysis": {
+    "preliminaryDiagnosis": "待查",
+    "treatmentTaken": "休息补水",
+    "medicationUsage": "无",
+    "generationNeeds": ["record", "diagnosis", "full-report"],
+    "symptoms": ["肌肉酸痛", "乏力", "咳嗽", "头痛", "高热", "发热"],
+    "medicalTerms": ["流行性感冒", "白细胞", "体温", "血压"],
+    "diagnosisTop1": "流行性感冒",
+    "diagnosisCandidates": ["流行性感冒", "上呼吸道感染", "急性咽炎"],
+    "diagnosisReason": "识别到高热、发热、乏力、肌肉酸痛、头痛、咳嗽等表现，融合模型、症状知识库和规则后，流行性感冒得分最高。",
+    "treatmentAdvice": "建议休息、补水并监测体温。本结果仅用于课程演示和辅助分析，不替代医生诊断。",
+    "content": "融合诊断说明",
+    "lowConfidence": false,
+    "lowConfidenceReason": null,
+    "disclaimer": "本结果仅用于课程演示和辅助分析，不替代医生诊断。"
+  },
+  "attachments": [
+    {
+      "id": "input_1",
+      "fileName": "blood-test.pdf",
+      "mimeType": "application/octet-stream",
+      "url": "",
+      "processingStatus": "metadata_only"
+    }
+  ],
+  "failureReason": null
+}

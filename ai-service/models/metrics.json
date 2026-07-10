@@ -1,0 +1,31 @@
+{
+  "modelName": "medical-record-hybrid-diagnosis",
+  "modelVersion": "1.0.0",
+  "randomState": 42,
+  "algorithm": "character TF-IDF (2-5 grams) + LogisticRegression",
+  "labels": [
+    "上呼吸道感染",
+    "便秘",
+    "支气管炎",
+    "普通感冒",
+    "腹泻"
+  ],
+  "sampleCounts": {
+    "train": 1358,
+    "dev": 445,
+    "test": 453
+  },
+  "featureCount": 44238,
+  "dev": {
+    "accuracy": 0.840449,
+    "macroF1": 0.850511
+  },
+  "test": {
+    "accuracy": 0.836645,
+    "macroF1": 0.849081
+  },
+  "environment": {
+    "python": "3.13.0",
+    "scikitLearn": "1.8.0"
+  }
+}

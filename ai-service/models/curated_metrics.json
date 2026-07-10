@@ -1,0 +1,110 @@
+{
+  "caseCount": 40,
+  "hitCount": 40,
+  "top3HitRate": 1.0,
+  "representedDiagnosisCount": 20,
+  "perDiagnosis": {
+    "2型糖尿病": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "上呼吸道感染": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "便秘": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "偏头痛": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "尿路感染": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "急性咽炎": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "急性胃肠炎": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "扁桃体炎": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "手足口病": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "支气管哮喘": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "支气管炎": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "普通感冒": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "流行性感冒": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "湿疹": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "肺炎": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "胃炎": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "胃食管反流病": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "腹泻": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "过敏性鼻炎": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    },
+    "高血压": {
+      "cases": 2,
+      "hits": 2,
+      "hitRate": 1.0
+    }
+  },
+  "misses": [],
+  "scopeNote": "Curated course-project cases; this is not a clinical validation metric."
+}
