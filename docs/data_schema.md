@@ -29,7 +29,7 @@ All demo data is fictional and desensitized.
 | `visitDate` | `visit_date` | no | `YYYY-MM-DD` |
 | `chiefComplaint` | `chief_complaint` | yes | string, max 200 chars |
 | `presentIllness` | `present_illness` | yes | string, max 1200 chars |
-| `pastHistory` | `past_history` | yes | string, max 800 chars; use `无` when empty in UI |
+| `pastHistory` | `past_history` | no | string, max 800 chars; default `未提供` when omitted |
 | `allergyHistory` | `allergy_history` | no | default `无` |
 | `vitalSigns` | `vital_signs` | no | default `无` |
 | `physicalExam` | `physical_exam` | no | default `无` |
@@ -67,8 +67,7 @@ The preprocessing script applies these rules:
 - normalize tabs, newlines, full-width spaces, and repeated whitespace
 - collapse repeated punctuation such as `!!!` into `!`
 - replace common synonyms, for example `发烧 -> 发热`, `拉肚子 -> 腹泻`
-- default optional text fields to `无`
-- combine complaint, history, signs, exam, and parsed attachment text into `clean_text`
+- default optional text fields to `无`; `past_history` defaults to `未提供`
 - combine complaint, history, signs, exam, auxiliary exam, and parsed attachment text into `clean_text`
 - keep `preliminary_diagnosis`, `treatment_taken`, and `medication_usage` as structured display/reference fields; never include them in model features to avoid label leakage
 - extract dictionary-based `symptoms`, `medical_terms`, and `tokens`

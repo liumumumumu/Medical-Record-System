@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from output_io import write_csv
+
 
 ROOT = Path(__file__).resolve().parents[1]
 PROCESSED_DIR = ROOT / "data" / "processed"
@@ -102,7 +104,7 @@ def main() -> None:
         "albumin_creatinine_ratio_mg_g",
     ]
     standardized = standardized[ordered_columns]
-    standardized.to_csv(OUTPUT_FILE, index=False, encoding="utf-8-sig")
+    write_csv(standardized, OUTPUT_FILE)
 
     print(f"standardized rows: {standardized.shape[0]}")
     print(f"standardized columns: {standardized.shape[1]}")

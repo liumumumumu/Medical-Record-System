@@ -3,9 +3,12 @@ from __future__ import annotations
 from datetime import datetime
 from html import unescape
 import json
+from numbers import Integral
 from pathlib import Path
 import re
 from typing import Any
+
+from output_io import write_json
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,7 +44,6 @@ REQUIRED_FIELDS = {
     "age": "年龄不能为空",
     "chiefComplaint": "主诉不能为空",
     "presentIllness": "现病史不能为空",
-    "pastHistory": "既往病史不能为空",
 }
 
 TEXT_LIMITS = {
@@ -64,6 +66,17 @@ TEXT_FIELDS = [
     "medication_usage",
 ]
 
+TEXT_DEFAULTS = {
+    "past_history": "未提供",
+    "allergy_history": "无",
+    "vital_signs": "无",
+    "physical_exam": "无",
+    "auxiliary_exam": "无",
+    "preliminary_diagnosis": "无",
+    "treatment_taken": "无",
+    "medication_usage": "无",
+}
+
 MODEL_TEXT_FIELDS = [
     "chief_complaint",
     "present_illness",
@@ -80,7 +93,8 @@ GENERATION_NEED_VALUES = {"record", "symptom", "diagnosis", "treatment", "full-r
 DEFAULT_GENERATION_NEEDS = ["record", "symptom", "diagnosis"]
 DEFAULT_SYNONYMS = {"发烧": "发热", "拉肚子": "腹泻"}
 NEGATION_CUES = ["无明显", "无", "未见", "否认", "没有", "未", "不伴"]
-POSITIVE_CUES = ["有", "伴", "出现", "提示"]
+POSITIVE_CUES = ["偶有", "有", "伴", "出现", "提示"]
+CLAUSE_SPLIT_PATTERN = re.compile(r"(?:但是|不过|然而|但|[。；！？!?]|，(?=(?:无明显|无|未见|否认|没有|未|不伴|伴|出现|提示|偶有|有)))")
 
 
 class CaseValidationError(ValueError):
@@ -147,13 +161,22 @@ def clean_text(value: Any, synonyms: dict[str, str] | None = None) -> str:
 
 
 def parse_age(value: Any) -> int | None:
-    if isinstance(value, bool):
+    if isinstance(value, bool) or value is None:
         return None
-    try:
-        age = int(value)
-    except (TypeError, ValueError):
+
+    if isinstance(value, Integral):
+        return int(value)
+
+    if isinstance(value, float):
         return None
-    return age
+
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped or not re.fullmatch(r"\d+", stripped):
+            return None
+        return int(stripped)
+
+    return None
 
 
 def validate_case(raw_case: dict[str, Any]) -> dict[str, str]:
@@ -209,24 +232,58 @@ def unique_in_order(values: list[str]) -> list[str]:
     return result
 
 
-def is_negated_occurrence(text: str, start_index: int) -> bool:
-    prefix = text[max(0, start_index - 8) : start_index]
-    last_negation = max((prefix.rfind(cue) for cue in NEGATION_CUES), default=-1)
-    if last_negation == -1:
-        return False
-    last_positive = max((prefix.rfind(cue) for cue in POSITIVE_CUES), default=-1)
-    return last_positive <= last_negation
+def split_clauses(text: str) -> list[str]:
+    clauses = [clause.strip() for clause in CLAUSE_SPLIT_PATTERN.split(text) if clause.strip()]
+    return clauses or [text]
 
 
-def has_positive_occurrence(text: str, term: str) -> bool:
-    for match in re.finditer(re.escape(term), text):
-        if not is_negated_occurrence(text, match.start()):
+def build_polarity_markers(clause: str) -> list[tuple[int, int, bool]]:
+    ordered_cues = [(cue, False) for cue in NEGATION_CUES] + [(cue, True) for cue in POSITIVE_CUES]
+    ordered_cues.sort(key=lambda item: len(item[0]), reverse=True)
+
+    markers: list[tuple[int, int, bool]] = []
+    index = 0
+    while index < len(clause):
+        matched = None
+        for cue, polarity in ordered_cues:
+            if clause.startswith(cue, index):
+                matched = (cue, polarity)
+                break
+        if matched is None:
+            index += 1
+            continue
+
+        cue, polarity = matched
+        markers.append((index, index + len(cue), polarity))
+        index += len(cue)
+
+    return markers
+
+
+def clause_has_positive_term(clause: str, term: str) -> bool:
+    markers = build_polarity_markers(clause)
+
+    for match in re.finditer(re.escape(term), clause):
+        last_polarity = None
+        for start, end, polarity in markers:
+            if end <= match.start():
+                last_polarity = polarity
+                continue
+            break
+
+        if last_polarity is not False:
             return True
+
     return False
 
 
 def find_terms(text: str, terms: list[str]) -> list[str]:
-    return unique_in_order([term for term in terms if term and has_positive_occurrence(text, term)])
+    matches: list[str] = []
+    clauses = split_clauses(text)
+    for term in terms:
+        if term and any(clause_has_positive_term(clause, term) for clause in clauses):
+            matches.append(term)
+    return unique_in_order(matches)
 
 
 def tokenize_text(cleaned_text: str, resources: dict[str, Any]) -> dict[str, list[str]]:
@@ -297,8 +354,8 @@ def standardize_case(raw_case: dict[str, Any], resources: dict[str, Any] | None 
             standardized[standard_field] = standardize_attachments(value, synonyms)
         elif standard_field in TEXT_FIELDS or standard_field == "patient_name":
             cleaned = clean_text(value, synonyms)
-            if standard_field in TEXT_FIELDS and cleaned == "":
-                cleaned = "无"
+            if standard_field in TEXT_DEFAULTS and cleaned == "":
+                cleaned = TEXT_DEFAULTS[standard_field]
             standardized[standard_field] = cleaned
         else:
             standardized[standard_field] = value or ""
@@ -339,11 +396,7 @@ def preprocess_cases(
     raw_cases = load_case_list(input_file)
     standardized_cases = [standardize_case(case, resources=resources) for case in raw_cases]
 
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    output_file.write_text(
-        json.dumps(standardized_cases, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    write_json(standardized_cases, output_file, ensure_ascii=False, indent=2)
     return standardized_cases
 
 

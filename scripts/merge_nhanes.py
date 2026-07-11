@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from output_io import write_csv
+
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW_DIR = ROOT / "data" / "raw" / "nhanes_2017_2018"
@@ -37,7 +39,7 @@ def main() -> None:
         merged = merged.merge(table, on="SEQN", how="left")
 
     merged = merged.rename(columns={"SEQN": "patient_id"})
-    merged.to_csv(PROCESSED_DIR / "nhanes_merged.csv", index=False, encoding="utf-8-sig")
+    write_csv(merged, PROCESSED_DIR / "nhanes_merged.csv")
 
     summary = pd.DataFrame(
         {
@@ -47,7 +49,7 @@ def main() -> None:
             "dtype": [str(dtype) for dtype in merged.dtypes],
         }
     )
-    summary.to_csv(PROCESSED_DIR / "nhanes_missing_summary.csv", index=False, encoding="utf-8-sig")
+    write_csv(summary, PROCESSED_DIR / "nhanes_missing_summary.csv")
 
     print(f"merged rows: {merged.shape[0]}")
     print(f"merged columns: {merged.shape[1]}")

@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from output_io import write_csv
+
 
 ROOT = Path(__file__).resolve().parents[1]
 PROCESSED_DIR = ROOT / "data" / "processed"
@@ -101,8 +103,8 @@ def main() -> None:
     quality_summary = build_quality_summary(df)
     outlier_summary = build_outlier_summary(df)
 
-    quality_summary.to_csv(QUALITY_OUTPUT, index=False, encoding="utf-8-sig")
-    outlier_summary.to_csv(OUTLIER_OUTPUT, index=False, encoding="utf-8-sig")
+    write_csv(quality_summary, QUALITY_OUTPUT)
+    write_csv(outlier_summary, OUTLIER_OUTPUT)
 
     print(f"quality summary rows: {quality_summary.shape[0]}")
     print(f"outlier summary rows: {outlier_summary.shape[0]}")

@@ -5,6 +5,8 @@ from typing import Iterable
 
 import pandas as pd
 
+from output_io import write_csv
+
 
 ROOT = Path(__file__).resolve().parents[1]
 RESOURCE_DIR = ROOT / "data" / "resources"
@@ -68,8 +70,7 @@ def build_feature_file(
 ) -> pd.DataFrame:
     cases = pd.read_csv(input_file)
     features = build_keyword_features(cases, load_keywords(resource_dir))
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    features.to_csv(output_file, index=False, encoding="utf-8-sig")
+    write_csv(features, output_file)
     return features
 
 

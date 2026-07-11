@@ -100,6 +100,35 @@ class PreprocessCaseTest(unittest.TestCase):
             self.assertIn("age", context.exception.field_errors)
             self.assertIn("chiefComplaint", context.exception.field_errors)
 
+    def test_standardize_case_rejects_non_integer_age_values(self):
+        raw_case = {
+            "patientName": "张某",
+            "gender": "male",
+            "chiefComplaint": "发热 1 天",
+            "presentIllness": "今天开始发热。",
+            "pastHistory": "无",
+        }
+
+        for age_value in (1.0, 1.9, "1.9", "1e2"):
+            with self.subTest(age_value=age_value):
+                with self.assertRaises(CaseValidationError) as context:
+                    standardize_case({**raw_case, "age": age_value})
+
+                self.assertEqual(context.exception.code, "VALIDATION_ERROR")
+                self.assertIn("age", context.exception.field_errors)
+
+    def test_standardize_case_defaults_missing_past_history(self):
+        raw_case = {
+            "patientName": "张某",
+            "gender": "male",
+            "age": 32,
+            "chiefComplaint": "发热 1 天",
+            "presentIllness": "今天开始发热。",
+        }
+
+        result = standardize_case(raw_case)
+        self.assertEqual(result["past_history"], "未提供")
+
     def test_standardize_case_defaults_optional_fields_and_attachment_failure(self):
         raw_case = {
             "patientName": "李某",
@@ -150,6 +179,26 @@ class PreprocessCaseTest(unittest.TestCase):
                 for attachment in result["attachments"]
             )
         )
+
+    def test_standardize_case_respects_negation_with_turning_clause(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            resource_dir = Path(temp_dir)
+            self.write_resources(resource_dir)
+            resources = load_resources(resource_dir)
+
+            raw_case = {
+                "patientName": "赵某",
+                "gender": "male",
+                "age": 26,
+                "chiefComplaint": "没有发热但有咳嗽 2 天",
+                "presentIllness": "没有发热，但有咳嗽，夜间明显。",
+                "pastHistory": "无",
+            }
+
+            result = standardize_case(raw_case, resources=resources)
+
+            self.assertNotIn("发热", result["symptoms"])
+            self.assertIn("咳嗽", result["symptoms"])
 
 
 if __name__ == "__main__":

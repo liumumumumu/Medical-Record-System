@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from output_io import write_csv
+
 
 ROOT = Path(__file__).resolve().parents[1]
 PROCESSED_DIR = ROOT / "data" / "processed"
@@ -64,7 +66,7 @@ def validate_outputs(
 
 def main() -> None:
     summary = validate_outputs()
-    summary.to_csv(VALIDATION_OUTPUT, index=False, encoding="utf-8-sig")
+    write_csv(summary, VALIDATION_OUTPUT)
     print(f"validated outputs: {summary.shape[0]}")
     print(VALIDATION_OUTPUT)
 

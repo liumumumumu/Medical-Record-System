@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from output_io import write_csv
+
 
 ROOT = Path(__file__).resolve().parents[1]
 PROCESSED_DIR = ROOT / "data" / "processed"
@@ -113,12 +115,12 @@ def main() -> None:
 
     for subset_name, config in SUBSET_CONFIGS.items():
         subset = build_subset(df, config["columns"], config["required"])
-        subset.to_csv(PROCESSED_DIR / config["output"], index=False, encoding="utf-8-sig")
+        write_csv(subset, PROCESSED_DIR / config["output"])
         subsets[subset_name] = subset
         print(f"{subset_name}: {subset.shape[0]} rows, {subset.shape[1]} columns")
 
     summary = build_subset_summary(subsets)
-    summary.to_csv(PROCESSED_DIR / "nhanes_analysis_subset_summary.csv", index=False, encoding="utf-8-sig")
+    write_csv(summary, PROCESSED_DIR / "nhanes_analysis_subset_summary.csv")
     print(PROCESSED_DIR / "nhanes_analysis_subset_summary.csv")
 
 
