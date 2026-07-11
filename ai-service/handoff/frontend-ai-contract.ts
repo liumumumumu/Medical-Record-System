@@ -10,7 +10,7 @@ export type FrontendCaseRequest = {
   visitDate?: string;
   chiefComplaint: string;
   presentIllness: string;
-  pastHistory: string;
+  pastHistory?: string;
   allergyHistory?: string;
   vitalSigns?: string;
   physicalExam?: string;

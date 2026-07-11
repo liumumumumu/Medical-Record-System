@@ -108,7 +108,7 @@ components:
         labResults: {type: string}
     FrontendRequest:
       type: object
-      required: [patientName, gender, age, chiefComplaint, presentIllness, pastHistory]
+      required: [patientName, gender, age, chiefComplaint, presentIllness]
       properties:
         patientName: {type: string, maxLength: 30}
         gender: {type: string, enum: [male, female]}
@@ -138,7 +138,7 @@ components:
           items: {type: string, enum: [record, symptom, diagnosis, treatment, full-report]}
     StandardizedRequest:
       type: object
-      required: [patient_name, gender, age, chief_complaint, present_illness, past_history]
+      required: [patient_name, gender, age, chief_complaint, present_illness]
       properties:
         patient_name: {type: string, maxLength: 30}
         gender: {type: string, enum: [male, female]}

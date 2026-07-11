@@ -47,7 +47,7 @@
 }
 ```
 
-六个必填字段为 `patientName`、`gender`、`age`、`chiefComplaint`、`presentIllness`、`pastHistory`。校验错误使用 CYH 交接规范要求的结构：
+五个必填字段为 `patientName`、`gender`、`age`、`chiefComplaint`、`presentIllness`。`pastHistory` 为选填，缺省时按“未提供”处理。校验错误使用 CYH 交接规范要求的结构：
 
 ```json
 {
@@ -62,7 +62,7 @@
 
 `POST /nlp/analyze/standardized`
 
-该端点接收 CYL 分支输出的 snake_case 病例，完整示例见 `handoff/standardized_request.example.json`。成功响应与 `/nlp/analyze/frontend` 相同，标准化附件对象会保留文件名、MIME 类型、解析状态、失败原因和置信度。
+该端点接收 CYL 分支输出的 snake_case 病例，完整示例见 `handoff/standardized_request.example.json`。`past_history` 为选填，缺省时按“未提供”处理。成功响应与 `/nlp/analyze/frontend` 相同，标准化附件对象会保留文件名、MIME 类型、解析状态、失败原因和置信度。
 
 服务只从 `chief_complaint`、`present_illness`、`past_history`、`allergy_history`、`vital_signs`、`physical_exam` 和 `auxiliary_exam` 读取模型证据。为避免标签泄漏，输入中的 `clean_text`、`symptoms`、`medical_terms`、`tokens`、`preliminary_diagnosis`、`treatment_taken` 和 `medication_usage` 不参与推理；后三项仅在响应中原样保留。
 

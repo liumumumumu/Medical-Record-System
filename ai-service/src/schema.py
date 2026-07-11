@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+import math
+import re
 from typing import Any
 
 
@@ -12,6 +14,20 @@ def _value(payload: dict[str, Any], camel: str, snake: str, default: Any = "") -
     if camel in payload:
         return payload[camel]
     return payload.get(snake, default)
+
+
+def _parse_age(value: Any) -> int:
+    if isinstance(value, bool):
+        raise ValueError
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        if not math.isfinite(value) or not value.is_integer():
+            raise ValueError
+        return int(value)
+    if isinstance(value, str) and re.fullmatch(r"\d+", value.strip()):
+        return int(value.strip())
+    raise ValueError
 
 
 @dataclass(frozen=True)
@@ -148,11 +164,9 @@ class PatientInput:
             field_errors = {field: "该字段为必填项" for field in missing}
             raise ValidationError(f"缺少必填字段: {', '.join(missing)}", field_errors)
 
-        if isinstance(raw_age, bool):
-            raise ValidationError("age 必须是 0 到 130 之间的整数", {"age": "请输入整数年龄"})
         try:
-            age = int(raw_age)
-        except (TypeError, ValueError) as error:
+            age = _parse_age(raw_age)
+        except ValueError as error:
             raise ValidationError("age 必须是 0 到 130 之间的整数", {"age": "请输入整数年龄"}) from error
         if not 0 <= age <= 130:
             raise ValidationError(

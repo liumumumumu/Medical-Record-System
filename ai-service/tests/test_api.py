@@ -164,6 +164,23 @@ def test_frontend_validation_error_maps_field_names():
     assert response.json["requestId"].startswith("req_")
 
 
+def test_frontend_accepts_missing_optional_past_history():
+    payload = dict(FRONTEND_PAYLOAD)
+    payload.pop("pastHistory")
+    response = create_app().test_client().post("/nlp/analyze/frontend", json=payload)
+    assert response.status_code == 200
+    assert response.json["structuredRecord"]["pastHistory"] == "未提供"
+
+
+def test_rejects_fractional_age_instead_of_truncating_it():
+    client = create_app().test_client()
+    for age in (1.9, "1.9"):
+        payload = dict(FRONTEND_PAYLOAD, age=age)
+        response = client.post("/nlp/analyze/frontend", json=payload)
+        assert response.status_code == 400
+        assert response.json["fieldErrors"] == {"age": "请输入整数年龄"}
+
+
 def test_standardized_case_contract_and_attachment_metadata():
     response = create_app().test_client().post(
         "/nlp/analyze/standardized", json=STANDARDIZED_PAYLOAD
@@ -236,6 +253,14 @@ def test_standardized_case_validation_uses_snake_case_fields():
     assert response.json["fieldErrors"] == {
         "chief_complaint": "不能超过 200 个字符"
     }
+
+    payload = dict(STANDARDIZED_PAYLOAD)
+    payload.pop("past_history")
+    response = create_app().test_client().post(
+        "/nlp/analyze/standardized", json=payload
+    )
+    assert response.status_code == 200
+    assert response.json["structuredRecord"]["pastHistory"] == "未提供"
 
 
 def test_metadata_exposes_model_and_limits():

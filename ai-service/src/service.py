@@ -114,7 +114,6 @@ class MedicalAIService:
             "age",
             "chiefComplaint",
             "presentIllness",
-            "pastHistory",
         )
         field_errors = {
             field: "该字段为必填项"
@@ -230,7 +229,6 @@ class MedicalAIService:
             "age",
             "chief_complaint",
             "present_illness",
-            "past_history",
         )
         field_errors = {
             field: "该字段为必填项"

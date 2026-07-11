@@ -4,6 +4,12 @@ from collections.abc import Iterable
 
 
 NEGATION_WORDS = ("无", "未见", "未", "否认", "不伴", "没有", "排除", "并无")
+POSITIVE_SCOPE_PATTERN = re.compile(
+    r"(?:但|而|另|现|仍|并)(?:有|伴有|出现|存在)"
+    r"|(?<=[，,])(?:有|伴有|出现|存在)"
+    r"|^(?:有|伴有|出现|存在)"
+    r"|提示|可见"
+)
 
 
 def normalize_text(text: str) -> str:
@@ -14,10 +20,17 @@ def normalize_text(text: str) -> str:
     return re.sub(r"\s+", " ", normalized).strip()
 
 
-def is_negated(text: str, start: int, window: int = 10) -> bool:
+def is_negated(text: str, start: int, window: int = 24) -> bool:
     context = text[max(0, start - window) : start]
-    clause = re.split(r"[。；;，,！？!?]", context)[-1]
-    return any(word in clause for word in NEGATION_WORDS)
+    clause = re.split(r"[。；;！？!?]", context)[-1]
+    last_negation = max((clause.rfind(word) for word in NEGATION_WORDS), default=-1)
+    if last_negation < 0:
+        return False
+    last_positive = max(
+        (match.start() for match in POSITIVE_SCOPE_PATTERN.finditer(clause)),
+        default=-1,
+    )
+    return last_negation > last_positive
 
 
 def has_positive_occurrence(text: str, term: str) -> bool:
