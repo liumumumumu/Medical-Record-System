@@ -6,6 +6,7 @@ import {
   mockGetCase,
   mockListCases,
   mockLogin,
+  mockRegister,
   mockUpdateCase,
 } from "./mock-medical-api";
 import type {
@@ -16,6 +17,7 @@ import type {
   CaseRecordView,
   MedicalFormValues,
   PageResult,
+  RegisterRequest,
 } from "../types/medical-record";
 
 const TOKEN_KEY = "medical-auth-token";
@@ -113,6 +115,21 @@ export async function login(username: string, password: string): Promise<AuthSes
   return session;
 }
 
+export async function register(request: RegisterRequest): Promise<AuthSession> {
+  if (USE_MOCK_API) {
+    try {
+      const session = await mockRegister(request);
+      storeToken(session.token);
+      return session;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+  const session = await unwrap(http.post<ApiResponse<AuthSession>>("/api/v1/auth/register", request));
+  storeToken(session.token);
+  return session;
+}
+
 export async function getCurrentUser(): Promise<AuthUser> {
   const token = getStoredToken();
   if (!token) throw new MedicalApiError("尚未登录", { status: 401 });
@@ -131,6 +148,7 @@ export async function logout() {
     if (!USE_MOCK_API) await unwrap(http.post<ApiResponse<null>>("/api/v1/auth/logout"));
   } finally {
     clearStoredToken();
+    if (USE_MOCK_API) window.localStorage.removeItem("medical-mock-session");
   }
 }
 

@@ -17,6 +17,12 @@ export type AuthSession = {
   user: AuthUser;
 };
 
+export type RegisterRequest = {
+  username: string;
+  password: string;
+  displayName: string;
+};
+
 export type CaseCreateRequest = {
   patientName: string;
   gender: GenderCode;

@@ -12,8 +12,9 @@ import {
   isUnauthorized,
   login,
   logout,
+  register,
 } from "./services/medical-api";
-import type { AuthUser, MedicalFormValues } from "./types/medical-record";
+import type { AuthUser, MedicalFormValues, RegisterRequest } from "./types/medical-record";
 
 function App() {
   const navigate = useNavigate();
@@ -40,6 +41,12 @@ function App() {
 
   async function handleLogin(username: string, password: string) {
     const session = await login(username, password);
+    setUser(session.user);
+    setLoginOpen(false);
+  }
+
+  async function handleRegister(request: RegisterRequest) {
+    const session = await register(request);
     setUser(session.user);
     setLoginOpen(false);
   }
@@ -80,7 +87,7 @@ function App() {
         <Route path="*" element={<Navigate replace to="/upload" />} />
       </Routes>
 
-      <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} onLogin={handleLogin} />
+      <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} />
     </div>
   );
 }

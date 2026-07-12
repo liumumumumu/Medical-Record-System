@@ -5,10 +5,15 @@ import type {
   CaseCreateRequest,
   CaseRecordView,
   PageResult,
+  RegisterRequest,
 } from "../types/medical-record";
 
 const MOCK_TOKEN = "medical-demo-token";
 const RECORDS_KEY = "medical-mock-records";
+const USERS_KEY = "medical-mock-users";
+const SESSION_KEY = "medical-mock-session";
+
+type MockUser = AuthUser & { password: string };
 
 function delay(ms = 280) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -26,29 +31,67 @@ function writeRecords(records: CaseRecordView[]) {
   window.localStorage.setItem(RECORDS_KEY, JSON.stringify(records));
 }
 
-const demoUser: AuthUser = {
+const demoUser: MockUser = {
   id: "user_demo_doctor",
   username: "doctor",
   displayName: "演示医生",
+  password: "demo123",
 };
+
+function readUsers(): MockUser[] {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(USERS_KEY) ?? "[]") as MockUser[];
+    return stored.some((user) => user.username === demoUser.username) ? stored : [demoUser, ...stored];
+  } catch {
+    return [demoUser];
+  }
+}
+
+function writeUsers(users: MockUser[]) {
+  window.localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+function issueMockSession(user: AuthUser): AuthSession {
+  const token = `${MOCK_TOKEN}-${user.id}`;
+  window.localStorage.setItem(SESSION_KEY, JSON.stringify({ token, user }));
+  return {
+    token,
+    tokenType: "Bearer",
+    expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+    user,
+  };
+}
 
 export async function mockLogin(username: string, password: string): Promise<AuthSession> {
   await delay();
-  if (username !== "doctor" || password !== "demo123") {
-    throw new Error("账号或密码错误。可使用演示账号 doctor / demo123。");
-  }
-  return {
-    token: MOCK_TOKEN,
-    tokenType: "Bearer",
-    expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
-    user: demoUser,
+  const user = readUsers().find((item) => item.username === username && item.password === password);
+  if (!user) throw new Error("账号或密码错误。可使用演示账号 doctor / demo123。");
+  return issueMockSession(user);
+}
+
+export async function mockRegister(request: RegisterRequest): Promise<AuthSession> {
+  await delay();
+  const users = readUsers();
+  if (users.some((user) => user.username === request.username)) throw new Error("用户名已存在，请更换后重试。");
+  const user: MockUser = {
+    id: `mock_user_${Date.now().toString(36)}`,
+    username: request.username,
+    displayName: request.displayName,
+    password: request.password,
   };
+  writeUsers([...users, user]);
+  return issueMockSession(user);
 }
 
 export async function mockCurrentUser(token: string): Promise<AuthUser> {
   await delay(80);
-  if (token !== MOCK_TOKEN) throw new Error("登录状态已失效");
-  return demoUser;
+  try {
+    const session = JSON.parse(window.localStorage.getItem(SESSION_KEY) ?? "null") as { token: string; user: AuthUser } | null;
+    if (!session || session.token !== token) throw new Error("登录状态已失效");
+    return session.user;
+  } catch {
+    throw new Error("登录状态已失效");
+  }
 }
 
 function buildAiResult(input: CaseCreateRequest): AiResult {

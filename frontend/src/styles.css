@@ -576,6 +576,9 @@ textarea:focus-visible {
 .dialog-mark { display: grid; width: 44px; height: 44px; margin-bottom: 18px; place-items: center; border-radius: 12px; background: var(--accent-soft); color: var(--accent-dark); }
 .login-dialog h2 { margin: 8px 0 10px; font-size: 28px; letter-spacing: -0.035em; }
 .dialog-description { margin: 0 0 24px; color: var(--text-muted); font-size: 13px; line-height: 1.75; }
+.account-switch { display: grid; grid-template-columns: repeat(2, 1fr); margin: 0 0 18px; padding: 3px; border: 1px solid var(--line-soft); border-radius: 10px; background: #f5f4ef; }
+.account-switch button { min-height: 32px; border: 0; border-radius: 7px; background: transparent; color: var(--text-muted); font-size: 12px; cursor: pointer; }
+.account-switch button.is-active { background: var(--surface-solid); color: var(--text-main); box-shadow: 0 2px 8px rgba(38, 49, 58, 0.08); }
 .login-form { display: flex; flex-direction: column; gap: 8px; }
 .login-form label { margin-top: 6px; color: #4d5962; font-size: 12px; font-weight: 500; }
 .login-form input { height: 44px; padding: 0 13px; border: 1px solid var(--line-mid); border-radius: var(--radius-control); outline: 0; background: white; }
