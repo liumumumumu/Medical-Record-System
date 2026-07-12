@@ -2,6 +2,7 @@ import { DownOutlined, PaperClipOutlined } from "@ant-design/icons";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import type { FieldValue, MedicalFormValues } from "../../types/medical-record";
+import { MedicalApiError } from "../../services/medical-api";
 import {
   medicalFieldConfigs,
   medicalFieldGroups,
@@ -9,10 +10,12 @@ import {
 } from "./form-config";
 
 type UploadModuleProps = {
-  onGenerate: (values: MedicalFormValues) => void;
+  isLoggedIn: boolean;
+  onGenerate: (values: MedicalFormValues) => Promise<{ id: string }>;
+  onRequireLogin: () => void;
 };
 
-type SubmitStatus = "idle" | "invalid" | "submitting" | "failed";
+type SubmitStatus = "idle" | "invalid" | "submitting" | "failed" | "authRequired";
 
 function createInitialValues(): MedicalFormValues {
   return medicalFieldConfigs.reduce<MedicalFormValues>((values, field) => {
@@ -46,7 +49,7 @@ function validateValues(values: MedicalFormValues) {
   }, {});
 }
 
-export function UploadModule({ onGenerate }: UploadModuleProps) {
+export function UploadModule({ isLoggedIn, onGenerate, onRequireLogin }: UploadModuleProps) {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const [values, setValues] = useState<MedicalFormValues>(createInitialValues);
@@ -91,6 +94,11 @@ export function UploadModule({ onGenerate }: UploadModuleProps) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!isLoggedIn) {
+      setStatus("authRequired");
+      onRequireLogin();
+      return;
+    }
     const nextErrors = validateValues(values);
 
     if (Object.keys(nextErrors).length > 0) {
@@ -105,10 +113,18 @@ export function UploadModule({ onGenerate }: UploadModuleProps) {
 
     setStatus("submitting");
     try {
-      await new Promise((resolve) => window.setTimeout(resolve, 450));
-      onGenerate(values);
-      navigate("/results");
-    } catch {
+      const record = await onGenerate(values);
+      navigate(`/results/${record.id}`);
+    } catch (error) {
+      if (error instanceof MedicalApiError && Object.keys(error.fieldErrors).length > 0) {
+        setErrors(error.fieldErrors);
+        setExpanded(true);
+        setStatus("invalid");
+        requestAnimationFrame(() => {
+          document.getElementById(`field-${Object.keys(error.fieldErrors)[0]}`)?.focus();
+        });
+        return;
+      }
       setStatus("failed");
     }
   }
@@ -254,8 +270,9 @@ export function UploadModule({ onGenerate }: UploadModuleProps) {
           <div className="form-feedback" aria-live="polite">
             {status === "invalid" ? <span className="form-status form-status--error">请完成标记的必填信息后再生成。</span> : null}
             {status === "submitting" ? <span className="form-status">正在整理病例信息…</span> : null}
-            {status === "failed" ? <span className="form-status form-status--error">生成失败，请检查信息后重试。</span> : null}
-            {status === "idle" && !expanded ? <span>完整生成还需填写现病史与既往病史。</span> : null}
+            {status === "failed" ? <span className="form-status form-status--error">服务暂时不可用，请确认后端与 AI 服务已启动后重试。</span> : null}
+            {status === "authRequired" ? <span className="form-status form-status--error">请先登录后再生成病例分析。</span> : null}
+            {status === "idle" && !expanded ? <span>完整生成还需填写现病史；既往病史未填写时将标记为未提供。</span> : null}
           </div>
           <div className="form-actions">
             <button className="secondary-button" type="button" onClick={clearForm}>清空内容</button>

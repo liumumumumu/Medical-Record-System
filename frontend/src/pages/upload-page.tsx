@@ -3,13 +3,15 @@ import { UploadModule } from "../components/upload/upload-module";
 import type { MedicalFormValues } from "../types/medical-record";
 
 type UploadPageProps = {
-  onGenerate: (values: MedicalFormValues) => void;
+  isLoggedIn: boolean;
+  onGenerate: (values: MedicalFormValues) => Promise<{ id: string }>;
+  onRequireLogin: () => void;
 };
 
-export function UploadPage({ onGenerate }: UploadPageProps) {
+export function UploadPage({ isLoggedIn, onGenerate, onRequireLogin }: UploadPageProps) {
   return (
     <main className="page-main">
-      <UploadModule onGenerate={onGenerate} />
+      <UploadModule isLoggedIn={isLoggedIn} onGenerate={onGenerate} onRequireLogin={onRequireLogin} />
       <IntroSection />
     </main>
   );

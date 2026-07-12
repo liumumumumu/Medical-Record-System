@@ -1,58 +1,86 @@
-import { useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { LoginDialog } from "./components/auth/login-dialog";
 import { TopNav } from "./components/layout/top-nav";
+import { HistoryPage } from "./pages/history-page";
 import { ResultsPage } from "./pages/results-page";
 import { UploadPage } from "./pages/upload-page";
-import type { GeneratedRecord, MedicalFormValues } from "./types/medical-record";
+import {
+  clearStoredToken,
+  createAndAnalyze,
+  getCurrentUser,
+  isUnauthorized,
+  login,
+  logout,
+} from "./services/medical-api";
+import type { AuthUser, MedicalFormValues } from "./types/medical-record";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
-  const [generatedRecord, setGeneratedRecord] = useState<GeneratedRecord | null>(() => {
+
+  function handleAuthExpired() {
+    clearStoredToken();
+    setUser(null);
+    setLoginOpen(true);
+  }
+
+  useEffect(() => {
+    let active = true;
+    getCurrentUser()
+      .then((currentUser) => {
+        if (active) setUser(currentUser);
+      })
+      .catch(() => {
+        clearStoredToken();
+      });
+    return () => { active = false; };
+  }, []);
+
+  async function handleLogin(username: string, password: string) {
+    const session = await login(username, password);
+    setUser(session.user);
+    setLoginOpen(false);
+  }
+
+  async function handleLogout() {
     try {
-      const storedRecord = window.sessionStorage.getItem("medical-generated-record");
-      return storedRecord ? JSON.parse(storedRecord) as GeneratedRecord : null;
-    } catch {
-      return null;
+      await logout();
+    } finally {
+      setUser(null);
+      navigate("/upload");
     }
-  });
+  }
 
-  function handleGenerate(values: MedicalFormValues) {
-    const nextRecord: GeneratedRecord = {
-      id: `MR-${Date.now().toString().slice(-8)}`,
-      generatedAt: new Date().toISOString(),
-      values,
-    };
-
-    setGeneratedRecord(nextRecord);
-    window.sessionStorage.setItem("medical-generated-record", JSON.stringify(nextRecord));
+  async function handleGenerate(values: MedicalFormValues) {
+    try {
+      return await createAndAnalyze(values);
+    } catch (error) {
+      if (isUnauthorized(error)) handleAuthExpired();
+      throw error;
+    }
   }
 
   return (
     <div className="app-shell">
       <div className="background-grid" aria-hidden="true" />
       <TopNav
-        isLoggedIn={isLoggedIn}
+        user={user}
         onLogin={() => setLoginOpen(true)}
-        onLogout={() => setIsLoggedIn(false)}
+        onLogout={() => { void handleLogout(); }}
       />
 
       <Routes>
         <Route path="/" element={<Navigate replace to="/upload" />} />
-        <Route path="/upload" element={<UploadPage onGenerate={handleGenerate} />} />
-        <Route path="/results" element={<ResultsPage record={generatedRecord} />} />
+        <Route path="/upload" element={<UploadPage isLoggedIn={Boolean(user)} onGenerate={handleGenerate} onRequireLogin={() => setLoginOpen(true)} />} />
+        <Route path="/history" element={<HistoryPage isLoggedIn={Boolean(user)} onAuthExpired={handleAuthExpired} onRequireLogin={() => setLoginOpen(true)} />} />
+        <Route path="/results" element={<ResultsPage isLoggedIn={Boolean(user)} onAuthExpired={handleAuthExpired} onRequireLogin={() => setLoginOpen(true)} />} />
+        <Route path="/results/:id" element={<ResultsPage isLoggedIn={Boolean(user)} onAuthExpired={handleAuthExpired} onRequireLogin={() => setLoginOpen(true)} />} />
         <Route path="*" element={<Navigate replace to="/upload" />} />
       </Routes>
 
-      <LoginDialog
-        open={loginOpen}
-        onClose={() => setLoginOpen(false)}
-        onLogin={() => {
-          setIsLoggedIn(true);
-          setLoginOpen(false);
-        }}
-      />
+      <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} onLogin={handleLogin} />
     </div>
   );
 }

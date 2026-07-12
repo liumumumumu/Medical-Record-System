@@ -1,15 +1,16 @@
 import { LockOutlined, LogoutOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import type { AuthUser } from "../../types/medical-record";
 
 type TopNavProps = {
-  isLoggedIn: boolean;
+  user: AuthUser | null;
   onLogin: () => void;
   onLogout: () => void;
 };
 
 export function TopNav({
-  isLoggedIn,
+  user,
   onLogin,
   onLogout,
 }: TopNavProps) {
@@ -28,12 +29,12 @@ export function TopNav({
             <NavLink className={({ isActive }) => isActive ? "tab-link active" : "tab-link"} to="/upload">
               录入病例
             </NavLink>
-            <NavLink className={({ isActive }) => isActive ? "tab-link active" : "tab-link"} to="/results">
+            <NavLink className={({ isActive }) => isActive ? "tab-link active" : "tab-link"} to="/history">
               查看结果
             </NavLink>
           </nav>
 
-          {isLoggedIn ? (
+          {user ? (
             <div className="account-menu">
               <button
                 aria-expanded={menuOpen}
@@ -42,11 +43,11 @@ export function TopNav({
                 onClick={() => setMenuOpen((current) => !current)}
                 type="button"
               >
-                <span className="avatar-placeholder">U</span>
+                <span className="avatar-placeholder">{user.displayName.slice(0, 1).toUpperCase()}</span>
               </button>
               {menuOpen ? (
                 <div className="account-popover" role="menu">
-                  <span>演示用户</span>
+                  <span>{user.displayName}</span>
                   <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); onLogout(); }}>
                     <LogoutOutlined />退出登录
                   </button>
