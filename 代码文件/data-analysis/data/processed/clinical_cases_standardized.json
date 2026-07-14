@@ -1,0 +1,145 @@
+[
+  {
+    "patient_name": "张某",
+    "gender": "male",
+    "age": 32,
+    "department": "internal",
+    "visit_date": "2026-07-10",
+    "chief_complaint": "发热、咳嗽 3 天",
+    "present_illness": "3天前受凉后出现发热、咳嗽、乏力，无明显气促。",
+    "past_history": "无高血压、糖尿病史。",
+    "allergy_history": "无",
+    "vital_signs": "体温 38.5℃，脉搏 88 次/分。",
+    "physical_exam": "咽部充血，双肺未闻及明显湿啰音。",
+    "auxiliary_exam": "血常规提示白细胞轻度升高。",
+    "preliminary_diagnosis": "上呼吸道感染",
+    "treatment_taken": "已给予退热处理。",
+    "medication_usage": "口服对乙酰氨基酚。",
+    "generation_needs": [
+      "record",
+      "symptom",
+      "diagnosis"
+    ],
+    "attachments": [
+      {
+        "id": "file_01",
+        "file_name": "blood-test.pdf",
+        "mime_type": "application/pdf",
+        "parse_status": "parsed",
+        "extracted_text": "白细胞轻度升高，C反应蛋白轻度升高。",
+        "failure_reason": "",
+        "confidence": null
+      }
+    ],
+    "clean_text": "发热、咳嗽 3 天 3天前受凉后出现发热、咳嗽、乏力，无明显气促。 无高血压、糖尿病史。 无 体温 38.5℃，脉搏 88 次/分。 咽部充血，双肺未闻及明显湿啰音。 血常规提示白细胞轻度升高。 白细胞轻度升高，C反应蛋白轻度升高。",
+    "symptoms": [
+      "发热",
+      "咳嗽",
+      "乏力",
+      "咽部充血"
+    ],
+    "medical_terms": [
+      "血常规",
+      "白细胞",
+      "C反应蛋白"
+    ],
+    "tokens": [
+      "发热",
+      "咳嗽",
+      "乏力",
+      "咽部充血",
+      "血常规",
+      "白细胞",
+      "C反应蛋白"
+    ],
+    "source_schema": "frontend_case_v0.2"
+  },
+  {
+    "patient_name": "李某",
+    "gender": "female",
+    "age": 28,
+    "department": "emergency",
+    "visit_date": "2026-07-10",
+    "chief_complaint": "腹痛、腹泻 1 天",
+    "present_illness": "进食不洁食物后出现腹痛、腹泻，伴恶心。",
+    "past_history": "无",
+    "allergy_history": "无",
+    "vital_signs": "无",
+    "physical_exam": "无",
+    "auxiliary_exam": "无",
+    "preliminary_diagnosis": "无",
+    "treatment_taken": "无",
+    "medication_usage": "无",
+    "generation_needs": [
+      "record",
+      "symptom"
+    ],
+    "attachments": [],
+    "clean_text": "腹痛、腹泻 1 天 进食不洁食物后出现腹痛、腹泻，伴恶心。 无 无 无 无 无",
+    "symptoms": [
+      "腹痛",
+      "腹泻",
+      "恶心"
+    ],
+    "medical_terms": [],
+    "tokens": [
+      "腹痛",
+      "腹泻",
+      "恶心"
+    ],
+    "source_schema": "frontend_case_v0.2"
+  },
+  {
+    "patient_name": "王某",
+    "gender": "male",
+    "age": 45,
+    "department": "internal",
+    "visit_date": "2026-07-10",
+    "chief_complaint": "胸闷、咳痰 2 天",
+    "present_illness": "2天前出现胸闷、咳痰，偶有气促。",
+    "past_history": "有高血压病史。",
+    "allergy_history": "无",
+    "vital_signs": "血压 146/92 mmHg。",
+    "physical_exam": "双肺呼吸音稍粗。",
+    "auxiliary_exam": "患者自带胸片照片，文字暂无法识别。",
+    "preliminary_diagnosis": "肺炎待排",
+    "treatment_taken": "建议进一步完善检查。",
+    "medication_usage": "暂未用药。",
+    "generation_needs": [
+      "record",
+      "diagnosis",
+      "full-report"
+    ],
+    "attachments": [
+      {
+        "id": "file_01",
+        "file_name": "blurred-chest-xray.jpg",
+        "mime_type": "image/jpeg",
+        "parse_status": "failed",
+        "extracted_text": "",
+        "failure_reason": "图片模糊，无法可靠识别文字。",
+        "confidence": null
+      }
+    ],
+    "clean_text": "胸闷、咳痰 2 天 2天前出现胸闷、咳痰，偶有气促。 有高血压病史。 无 血压 146/92 mmHg。 双肺呼吸音稍粗。 患者自带胸片照片，文字暂无法识别。",
+    "symptoms": [
+      "胸闷",
+      "气促",
+      "咳痰"
+    ],
+    "medical_terms": [
+      "高血压",
+      "血压",
+      "胸片"
+    ],
+    "tokens": [
+      "胸闷",
+      "气促",
+      "咳痰",
+      "高血压",
+      "血压",
+      "胸片"
+    ],
+    "source_schema": "frontend_case_v0.2"
+  }
+]

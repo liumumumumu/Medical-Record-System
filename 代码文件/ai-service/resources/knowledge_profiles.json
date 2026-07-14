@@ -1,0 +1,308 @@
+{
+  "上呼吸道感染": {
+    "core": true,
+    "aliases": [
+      "急性上呼吸道感染",
+      "上感"
+    ],
+    "keySymptoms": [
+      "发热",
+      "咳嗽",
+      "鼻塞",
+      "鼻流涕",
+      "咽痛",
+      "咽部充血",
+      "乏力"
+    ],
+    "matchedDatabaseRows": 4
+  },
+  "普通感冒": {
+    "core": true,
+    "aliases": [
+      "感冒",
+      "小儿感冒"
+    ],
+    "keySymptoms": [
+      "鼻塞",
+      "鼻流涕",
+      "喷嚏",
+      "咳嗽",
+      "低热",
+      "咽痛"
+    ],
+    "matchedDatabaseRows": 12
+  },
+  "支气管炎": {
+    "core": true,
+    "aliases": [
+      "小儿支气管炎",
+      "急性支气管炎"
+    ],
+    "keySymptoms": [
+      "咳嗽",
+      "咳痰",
+      "喘息",
+      "发热",
+      "胸闷"
+    ],
+    "matchedDatabaseRows": 17
+  },
+  "腹泻": {
+    "core": true,
+    "aliases": [
+      "小儿腹泻"
+    ],
+    "keySymptoms": [
+      "腹泻",
+      "稀便",
+      "大便次数增多",
+      "腹痛",
+      "脱水"
+    ],
+    "matchedDatabaseRows": 12
+  },
+  "便秘": {
+    "core": true,
+    "aliases": [
+      "小儿便秘"
+    ],
+    "keySymptoms": [
+      "便秘",
+      "排便困难",
+      "大便干结",
+      "腹胀",
+      "排便次数减少"
+    ],
+    "matchedDatabaseRows": 5
+  },
+  "流行性感冒": {
+    "core": false,
+    "aliases": [
+      "流感",
+      "甲型流感",
+      "乙型流感",
+      "甲流",
+      "乙流"
+    ],
+    "keySymptoms": [
+      "高热",
+      "发热",
+      "乏力",
+      "肌肉酸痛",
+      "头痛",
+      "咳嗽"
+    ],
+    "matchedDatabaseRows": 22
+  },
+  "急性咽炎": {
+    "core": false,
+    "aliases": [
+      "咽炎",
+      "急性咽喉炎"
+    ],
+    "keySymptoms": [
+      "咽痛",
+      "吞咽痛",
+      "咽部充血",
+      "发热",
+      "咳嗽"
+    ],
+    "matchedDatabaseRows": 9
+  },
+  "扁桃体炎": {
+    "core": false,
+    "aliases": [
+      "急性扁桃体炎",
+      "化脓性扁桃体炎"
+    ],
+    "keySymptoms": [
+      "咽痛",
+      "扁桃体肿大",
+      "扁桃体化脓",
+      "发热",
+      "吞咽痛"
+    ],
+    "matchedDatabaseRows": 5
+  },
+  "肺炎": {
+    "core": false,
+    "aliases": [
+      "社区获得性肺炎",
+      "支气管肺炎",
+      "小儿支气管肺炎"
+    ],
+    "keySymptoms": [
+      "发热",
+      "咳嗽",
+      "咳痰",
+      "呼吸困难",
+      "胸痛",
+      "气促"
+    ],
+    "matchedDatabaseRows": 130
+  },
+  "过敏性鼻炎": {
+    "core": false,
+    "aliases": [
+      "变应性鼻炎"
+    ],
+    "keySymptoms": [
+      "喷嚏",
+      "鼻痒",
+      "鼻塞",
+      "鼻流涕",
+      "流泪"
+    ],
+    "matchedDatabaseRows": 4
+  },
+  "支气管哮喘": {
+    "core": false,
+    "aliases": [
+      "哮喘"
+    ],
+    "keySymptoms": [
+      "喘息",
+      "气促",
+      "胸闷",
+      "呼吸困难",
+      "咳嗽"
+    ],
+    "matchedDatabaseRows": 27
+  },
+  "急性胃肠炎": {
+    "core": false,
+    "aliases": [
+      "胃肠炎",
+      "急性肠胃炎",
+      "肠胃炎"
+    ],
+    "keySymptoms": [
+      "腹痛",
+      "腹泻",
+      "恶心",
+      "呕吐",
+      "发热"
+    ],
+    "matchedDatabaseRows": 10
+  },
+  "胃炎": {
+    "core": false,
+    "aliases": [
+      "急性胃炎",
+      "慢性胃炎"
+    ],
+    "keySymptoms": [
+      "上腹痛",
+      "恶心",
+      "呕吐",
+      "腹胀",
+      "反酸"
+    ],
+    "matchedDatabaseRows": 26
+  },
+  "胃食管反流病": {
+    "core": false,
+    "aliases": [
+      "胃食管反流",
+      "反流性食管炎"
+    ],
+    "keySymptoms": [
+      "反酸",
+      "烧心",
+      "胸骨后烧灼感",
+      "嗳气",
+      "咳嗽"
+    ],
+    "matchedDatabaseRows": 4
+  },
+  "高血压": {
+    "core": false,
+    "aliases": [
+      "原发性高血压",
+      "血压高"
+    ],
+    "keySymptoms": [
+      "血压升高",
+      "头痛",
+      "头晕",
+      "心悸",
+      "耳鸣"
+    ],
+    "matchedDatabaseRows": 37
+  },
+  "2型糖尿病": {
+    "core": false,
+    "aliases": [
+      "二型糖尿病",
+      "II型糖尿病",
+      "糖尿病"
+    ],
+    "keySymptoms": [
+      "血糖升高",
+      "口渴",
+      "多饮",
+      "多尿",
+      "体重下降",
+      "乏力"
+    ],
+    "matchedDatabaseRows": 40
+  },
+  "偏头痛": {
+    "core": false,
+    "aliases": [
+      "血管性偏头痛"
+    ],
+    "keySymptoms": [
+      "头痛",
+      "偏侧头痛",
+      "恶心",
+      "畏光",
+      "畏声"
+    ],
+    "matchedDatabaseRows": 9
+  },
+  "尿路感染": {
+    "core": false,
+    "aliases": [
+      "泌尿系统感染",
+      "尿道感染"
+    ],
+    "keySymptoms": [
+      "尿频",
+      "尿急",
+      "尿痛",
+      "发热",
+      "腰痛"
+    ],
+    "matchedDatabaseRows": 11
+  },
+  "湿疹": {
+    "core": false,
+    "aliases": [
+      "特应性皮炎",
+      "婴儿湿疹"
+    ],
+    "keySymptoms": [
+      "皮疹",
+      "瘙痒",
+      "红斑",
+      "渗出",
+      "皮肤干燥"
+    ],
+    "matchedDatabaseRows": 23
+  },
+  "手足口病": {
+    "core": false,
+    "aliases": [
+      "小儿手足口病"
+    ],
+    "keySymptoms": [
+      "手足皮疹",
+      "口腔疱疹",
+      "口腔溃疡",
+      "发热",
+      "流涎"
+    ],
+    "matchedDatabaseRows": 2
+  }
+}

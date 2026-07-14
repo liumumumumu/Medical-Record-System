@@ -1,0 +1,12 @@
+[
+  {"name":"演示患者01","gender":"男","age":26,"chiefComplaint":"高热、咳嗽伴全身酸痛2天","historyPresentIllness":"突然高烧39.5℃，全身乏力、肌肉酸痛、头痛并咳嗽","pastHistory":"无特殊","physicalExam":"体温39.5℃","labResults":"未提供"},
+  {"name":"演示患者02","gender":"女","age":34,"chiefComplaint":"腹痛腹泻1天","historyPresentIllness":"进食后出现腹痛、腹泻，伴恶心和多次呕吐","pastHistory":"无特殊","physicalExam":"腹部轻压痛","labResults":"未提供"},
+  {"name":"演示患者03","gender":"男","age":52,"chiefComplaint":"头痛头晕1周","historyPresentIllness":"反复头痛头晕并心悸，多次测量血压升高","pastHistory":"无糖尿病史","physicalExam":"血压165/105mmHg","labResults":"未提供"},
+  {"name":"演示患者04","gender":"女","age":30,"chiefComplaint":"反复喷嚏鼻塞","historyPresentIllness":"接触灰尘后喷嚏不断，鼻痒、鼻塞、流鼻涕并流泪","pastHistory":"有过敏史","physicalExam":"未提供","labResults":"未提供"},
+  {"name":"演示患者05","gender":"男","age":41,"chiefComplaint":"尿频尿急伴尿痛","historyPresentIllness":"突然尿频、尿急和小便疼，随后出现低热及腰痛","pastHistory":"无特殊","physicalExam":"体温37.8℃","labResults":"尿常规待查"},
+  {"name":"演示患者06","gender":"女","age":29,"chiefComplaint":"反复偏侧头痛","historyPresentIllness":"一侧搏动样头痛，发作时恶心、怕光和怕声音","pastHistory":"无高血压史","physicalExam":"未提供","labResults":"未提供"},
+  {"name":"演示患者07","gender":"男","age":47,"chiefComplaint":"口渴多尿伴体重下降","historyPresentIllness":"近期口渴、多饮、多尿和乏力，体重下降","pastHistory":"无特殊","physicalExam":"未提供","labResults":"空腹血糖10.2mmol/L"},
+  {"name":"演示患者08","gender":"女","age":22,"chiefComplaint":"皮肤红疹瘙痒","historyPresentIllness":"皮肤出现红斑和皮疹，明显瘙痒并有少量渗出","pastHistory":"无特殊","physicalExam":"局部皮肤干燥红斑","labResults":"未提供"},
+  {"name":"演示患儿09","gender":"男","age":4,"chiefComplaint":"发热伴手足皮疹","historyPresentIllness":"发热后手足出现皮疹，口腔有疱疹和溃疡并流涎","pastHistory":"无特殊","physicalExam":"体温38.3℃","labResults":"未提供"},
+  {"name":"演示患者10","gender":"男","age":60,"chiefComplaint":"持续胸痛伴气促","historyPresentIllness":"持续胸痛且胸痛不缓解，同时感觉呼吸困难","pastHistory":"高血压史","physicalExam":"未提供","labResults":"未提供"}
+]

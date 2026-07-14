@@ -1,0 +1,49 @@
+# Local runtime and generated outputs
+.runtime/
+tmp/
+output/
+*.log
+*-delivery.zip
+
+# Local agent/workspace metadata
+.agents/
+**/AGENTS.md
+handoff-pending.md
+**/docs/knowledge-base/
+**/.integration-logs/
+
+# Large optional corpora are not required to run the demo
+dataset/
+
+# Build and dependency caches
+**/node_modules/
+**/dist/
+**/target/
+**/__pycache__/
+**/.pytest_cache/
+**/.venv/
+**/venv/
+**/coverage/
+**/*.pyc
+**/*.tsbuildinfo
+
+# Editor and operating-system files
+**/.idea/
+**/.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Runtime medical data and local databases
+代码文件/backend-service/data/uploads/
+代码文件/backend-service/data/reports/
+代码文件/backend-service/data/mongodb/
+代码文件/backend-service/data/logs/
+
+# Local secrets
+.env
+**/.env
+.env.*
+**/.env.*
+!.env.example
+!**/.env.example

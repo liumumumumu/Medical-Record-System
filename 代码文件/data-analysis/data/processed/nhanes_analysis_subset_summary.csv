@@ -1,0 +1,4 @@
+﻿subset_name,row_count,column_count,columns
+diabetes,5804,9,"patient_id,gender,age_years,bmi,waist_cm,systolic_bp_mean,diastolic_bp_mean,glucose_mg_dl,hba1c_percent"
+kidney,5798,11,"patient_id,gender,age_years,systolic_bp_mean,diastolic_bp_mean,blood_urea_nitrogen_mg_dl,creatinine_mg_dl,uric_acid_mg_dl,urine_albumin_ug_ml,urine_creatinine_mg_dl,albumin_creatinine_ratio_mg_g"
+cardiovascular,5525,12,"patient_id,gender,age_years,bmi,waist_cm,systolic_bp_mean,diastolic_bp_mean,pulse_rate,total_cholesterol_mg_dl,triglycerides_mg_dl,glucose_mg_dl,hba1c_percent"

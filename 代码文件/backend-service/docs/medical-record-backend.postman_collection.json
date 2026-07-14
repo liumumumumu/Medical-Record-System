@@ -1,0 +1,112 @@
+{
+  "info": {
+    "name": "Medical Record Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api/v1" },
+    { "key": "token", "value": "" },
+    { "key": "caseId", "value": "" },
+    { "key": "jobId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1 Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"demo\",\n  \"password\": \"demo123456\"\n}"
+        },
+        "url": "{{baseUrl}}/auth/login"
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test('login succeeds', () => pm.response.to.have.status(200));",
+          "pm.collectionVariables.set('token', pm.response.json().token);"
+        ] }
+      }]
+    },
+    {
+      "name": "2 Create Case",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"patientName\": \"张某\",\n  \"gender\": \"male\",\n  \"age\": 32,\n  \"department\": \"internal\",\n  \"visitDate\": \"2026-07-10\",\n  \"chiefComplaint\": \"发热、咳嗽 3 天\",\n  \"presentIllness\": \"受凉后出现发热、咳嗽和乏力\",\n  \"pastHistory\": \"无\",\n  \"allergyHistory\": \"无\",\n  \"physicalExam\": \"咽部充血\",\n  \"auxiliaryExam\": \"白细胞轻度升高\",\n  \"generationNeeds\": [\"record\", \"diagnosis\", \"treatment\"]\n}"
+        },
+        "url": "{{baseUrl}}/cases"
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test('case accepted', () => pm.response.to.have.status(202));",
+          "const body = pm.response.json();",
+          "pm.collectionVariables.set('caseId', body.caseId);",
+          "pm.collectionVariables.set('jobId', body.jobId);"
+        ] }
+      }]
+    },
+    {
+      "name": "3 Get Job",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/jobs/{{jobId}}"
+      }
+    },
+    {
+      "name": "4 Get Result",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/cases/{{caseId}}/result"
+      }
+    },
+    {
+      "name": "5 List Cases",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/cases?page=0&size=20"
+      }
+    },
+    {
+      "name": "6 Get Case Detail",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/cases/{{caseId}}"
+      }
+    },
+    {
+      "name": "7 Edit Record",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"editedRecord\": \"人工审核并修改后的完整病历内容\"\n}"
+        },
+        "url": "{{baseUrl}}/cases/{{caseId}}/record"
+      }
+    },
+    {
+      "name": "8 Download Report",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/cases/{{caseId}}/report"
+      }
+    }
+  ]
+}

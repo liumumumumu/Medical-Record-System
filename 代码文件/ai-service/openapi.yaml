@@ -1,0 +1,191 @@
+openapi: 3.1.0
+info:
+  title: Medical Record AI Service
+  version: 1.0.0
+  description: 课程演示用症状抽取、多病种辅助分析和结构化病历服务，不替代医生诊断。
+servers:
+  - url: http://localhost:5000
+paths:
+  /health:
+    get:
+      summary: 检查服务与模型状态
+      responses:
+        "200":
+          description: 服务状态
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, service, modelLoaded, knowledgeLoaded, supportedDiagnoses, modelVersion]
+                properties:
+                  status: {type: string, enum: [ok, degraded]}
+                  service: {type: string}
+                  modelLoaded: {type: boolean}
+                  knowledgeLoaded: {type: boolean}
+                  supportedDiagnoses: {type: integer}
+                  modelName: {type: string}
+                  modelVersion: {type: string}
+  /metadata:
+    get:
+      summary: 获取模型版本、类别、指标和运行限制
+      responses:
+        "200":
+          description: 模型元数据
+  /nlp/analyze:
+    post:
+      summary: 原四人计划兼容分析接口
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LegacyRequest"
+      responses:
+        "200":
+          description: 轻量 AnalysisResult
+  /nlp/analyze/frontend:
+    post:
+      summary: CYH 前端字段兼容分析接口
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FrontendRequest"
+      responses:
+        "200":
+          description: 可映射到前端结果页的分区结果
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FrontendResult"
+        "400":
+          description: 字段校验失败
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "413":
+          description: 请求超过 1 MB
+        "500":
+          description: AI 推理失败
+  /nlp/analyze/standardized:
+    post:
+      summary: CYL 标准化病例分析接口
+      description: 仅从原始病情、病史、体征和检查字段读取模型证据。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StandardizedRequest"
+      responses:
+        "200":
+          description: 与前端兼容端点相同的分区结果
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FrontendResult"
+        "400":
+          description: snake_case 字段校验失败
+components:
+  schemas:
+    LegacyRequest:
+      type: object
+      required: [name, gender, age, chiefComplaint, historyPresentIllness]
+      properties:
+        name: {type: string}
+        gender: {type: string}
+        age: {type: integer, minimum: 0, maximum: 130}
+        chiefComplaint: {type: string}
+        historyPresentIllness: {type: string}
+        pastHistory: {type: string}
+        physicalExam: {type: string}
+        labResults: {type: string}
+    FrontendRequest:
+      type: object
+      required: [patientName, gender, age, chiefComplaint, presentIllness]
+      properties:
+        patientName: {type: string, maxLength: 30}
+        gender: {type: string, enum: [male, female]}
+        age: {type: integer, minimum: 0, maximum: 130}
+        department: {type: string, enum: [internal, surgery, pediatrics, emergency, other, ""]}
+        visitDate: {type: string, format: date}
+        chiefComplaint: {type: string, maxLength: 200}
+        presentIllness: {type: string, maxLength: 1200}
+        pastHistory: {type: string, maxLength: 800}
+        allergyHistory: {type: string}
+        vitalSigns: {type: string}
+        physicalExam: {type: string}
+        auxiliaryExam: {type: string}
+        attachments:
+          type: array
+          items: {type: string}
+        preliminaryDiagnosis: {type: string}
+        treatmentTaken: {type: string}
+        medicationUsage: {type: string}
+        generationNeeds:
+          type: array
+          items: {type: string, enum: [record, symptom, diagnosis, treatment, full-report]}
+    StandardizedRequest:
+      type: object
+      required: [patient_name, gender, age, chief_complaint, present_illness]
+      properties:
+        patient_name: {type: string, maxLength: 30}
+        gender: {type: string, enum: [male, female]}
+        age: {type: integer, minimum: 0, maximum: 130}
+        department: {type: string}
+        visit_date: {type: string, format: date}
+        chief_complaint: {type: string, maxLength: 200}
+        present_illness: {type: string, maxLength: 1200}
+        past_history: {type: string, maxLength: 800}
+        allergy_history: {type: string}
+        vital_signs: {type: string}
+        physical_exam: {type: string}
+        auxiliary_exam: {type: string}
+        preliminary_diagnosis: {type: string, description: 仅回显，不参与推理}
+        treatment_taken: {type: string, description: 仅回显，不参与推理}
+        medication_usage: {type: string, description: 仅回显，不参与推理}
+        generation_needs:
+          type: array
+          items: {type: string, enum: [record, symptom, diagnosis, treatment, full-report]}
+        attachments:
+          type: array
+          items: {type: object}
+    FrontendResult:
+      type: object
+      required: [status, generatedAt, processingTimeMs, model, summary, structuredRecord, analysis, attachments]
+      properties:
+        status: {type: string, const: completed}
+        generatedAt: {type: string, format: date-time}
+        processingTimeMs: {type: number}
+        model:
+          type: object
+          properties:
+            name: {type: string}
+            version: {type: string}
+            confidence: {type: number, minimum: 0, maximum: 1}
+            lowConfidence: {type: boolean}
+        summary: {type: object}
+        structuredRecord: {type: object}
+        analysis:
+          type: object
+          properties:
+            symptoms: {type: array, items: {type: string}}
+            medicalTerms: {type: array, items: {type: string}}
+            diagnosisTop1: {type: string}
+            diagnosisCandidates: {type: array, maxItems: 3, items: {type: string}}
+            diagnosisReason: {type: string}
+            treatmentAdvice: {type: string}
+            lowConfidence: {type: boolean}
+            disclaimer: {type: string}
+        attachments: {type: array, items: {type: object}}
+        failureReason: {type: [string, "null"]}
+    ApiError:
+      type: object
+      required: [code, message, fieldErrors, requestId]
+      properties:
+        code: {type: string}
+        message: {type: string}
+        fieldErrors: {type: object, additionalProperties: {type: string}}
+        requestId: {type: string}

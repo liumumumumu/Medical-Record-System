@@ -1,0 +1,32 @@
+* text=auto
+
+# Platform-specific scripts
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.sh text eol=lf
+
+# Source and documentation
+*.java text eol=lf
+*.py text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.csv text eol=lf
+*.txt text eol=lf
+
+# Binary models, data and documents
+*.joblib binary
+*.xpt binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.doc binary
+*.docx binary
+*.zip binary

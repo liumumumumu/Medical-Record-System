@@ -1,0 +1,19 @@
+{
+  "patientName": "演示患者",
+  "gender": "female",
+  "age": 30,
+  "department": "internal",
+  "visitDate": "2026-07-10",
+  "chiefComplaint": "高热咳嗽伴全身酸痛2天",
+  "presentIllness": "突然高烧39.5℃，全身乏力、肌肉酸痛、头痛并咳嗽",
+  "pastHistory": "无高血压糖尿病史",
+  "allergyHistory": "无",
+  "vitalSigns": "体温39.5℃，血压120/80mmHg",
+  "physicalExam": "未见明显异常",
+  "auxiliaryExam": "白细胞正常",
+  "attachments": ["blood-test.pdf"],
+  "preliminaryDiagnosis": "待查",
+  "treatmentTaken": "休息补水",
+  "medicationUsage": "无",
+  "generationNeeds": ["record", "diagnosis", "full-report"]
+}

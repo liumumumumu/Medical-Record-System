@@ -1,0 +1,18 @@
+{
+  "patientName": "张某",
+  "gender": "male",
+  "age": 32,
+  "department": "internal",
+  "visitDate": "2026-07-10",
+  "chiefComplaint": "发热、咳嗽 3 天",
+  "presentIllness": "3 天前受凉后出现发热、咳嗽和乏力，最高体温 38.5℃。",
+  "pastHistory": "无高血压、糖尿病等慢性病史。",
+  "allergyHistory": "无",
+  "vitalSigns": "体温 38.2℃，脉搏 88 次/分。",
+  "physicalExam": "咽部轻度充血，双肺呼吸音清。",
+  "auxiliaryExam": "血常规提示白细胞轻度升高。",
+  "preliminaryDiagnosis": "上呼吸道感染待查",
+  "treatmentTaken": "暂未处理",
+  "medicationUsage": "无",
+  "generationNeeds": ["record", "symptom", "diagnosis", "treatment", "full-report"]
+}

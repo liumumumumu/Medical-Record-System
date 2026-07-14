@@ -1,0 +1,35 @@
+source_field,standard_field,chinese_name,unit,source_table,description
+SEQN,patient_id,患者编号,,DEMO_J,受试者唯一编号
+RIAGENDR,gender_code,性别编码,,DEMO_J,1=male 2=female
+gender,gender,性别,,standardized,由 gender_code 映射得到
+RIDAGEYR,age_years,年龄,year,DEMO_J,受试者年龄
+RIDRETH3,race_ethnicity_code,种族/族裔编码,,DEMO_J,NHANES 原始分类编码
+INDFMPIR,family_income_poverty_ratio,家庭收入贫困比,,DEMO_J,家庭收入与贫困线比值
+BMXWT,weight_kg,体重,kg,BMX_J,身体测量指标
+BMXHT,height_cm,身高,cm,BMX_J,身体测量指标
+BMXBMI,bmi,身体质量指数,kg/m2,BMX_J,身体测量指标
+BMXWAIST,waist_cm,腰围,cm,BMX_J,身体测量指标
+BPXSY1/BPXSY2/BPXSY3/BPXSY4,systolic_bp_mean,平均收缩压,mmHg,BPX_J,多次收缩压测量均值
+BPXDI1/BPXDI2/BPXDI3/BPXDI4,diastolic_bp_mean,平均舒张压,mmHg,BPX_J,多次舒张压测量均值
+BPXPLS,pulse_rate,脉搏,beats/min,BPX_J,脉搏测量值
+LBXSAL,albumin_g_dl,白蛋白,g/dL,BIOPRO_J,生化指标
+LBXSAPSI,alkaline_phosphatase_u_l,碱性磷酸酶,U/L,BIOPRO_J,生化指标
+LBXSASSI,ast_u_l,天门冬氨酸氨基转移酶AST,U/L,BIOPRO_J,肝功能指标
+LBXSATSI,alt_u_l,丙氨酸氨基转移酶ALT,U/L,BIOPRO_J,肝功能指标
+LBXSBU,blood_urea_nitrogen_mg_dl,血尿素氮,mg/dL,BIOPRO_J,肾功能指标
+LBXSCR,creatinine_mg_dl,血肌酐,mg/dL,BIOPRO_J,肾功能指标
+LBXSGL,glucose_mg_dl,血糖,mg/dL,BIOPRO_J,糖代谢指标
+LBXSGTSI,ggt_u_l,γ-谷氨酰转移酶GGT,U/L,BIOPRO_J,肝胆相关指标
+LBXSTB,total_bilirubin_mg_dl,总胆红素,mg/dL,BIOPRO_J,肝功能指标
+LBXSCH,total_cholesterol_mg_dl,总胆固醇,mg/dL,BIOPRO_J,血脂指标
+LBXSTR,triglycerides_mg_dl,甘油三酯,mg/dL,BIOPRO_J,血脂指标
+LBXSUA,uric_acid_mg_dl,尿酸,mg/dL,BIOPRO_J,代谢指标
+LBXWBCSI,white_blood_cell_1000_ul,白细胞计数,1000 cells/uL,CBC_J,血常规指标
+LBXRBCSI,red_blood_cell_million_ul,红细胞计数,million cells/uL,CBC_J,血常规指标
+LBXHGB,hemoglobin_g_dl,血红蛋白,g/dL,CBC_J,血常规指标
+LBXHCT,hematocrit_percent,红细胞压积,%,CBC_J,血常规指标
+LBXPLTSI,platelet_1000_ul,血小板计数,1000 cells/uL,CBC_J,血常规指标
+LBXGH,hba1c_percent,糖化血红蛋白,%,GHB_J,糖尿病相关指标
+URXUMA,urine_albumin_ug_ml,尿白蛋白,ug/mL,ALB_CR_J,尿液检测指标
+URXUCR,urine_creatinine_mg_dl,尿肌酐,mg/dL,ALB_CR_J,尿液检测指标
+URDACT,albumin_creatinine_ratio_mg_g,尿白蛋白肌酐比,mg/g,ALB_CR_J,肾功能相关指标

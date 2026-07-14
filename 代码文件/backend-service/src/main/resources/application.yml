@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: medical-record-backend
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://127.0.0.1:27017/medical_records}
+      auto-index-creation: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 32MB
+  jackson:
+    default-property-inclusion: non_null
+    deserialization:
+      accept-float-as-int: false
+
+server:
+  port: ${SERVER_PORT:8080}
+
+app:
+  cors:
+    allowed-origins:
+      - ${FRONTEND_ORIGIN:http://localhost:5173}
+      - ${FRONTEND_ORIGIN_ALT:http://127.0.0.1:5173}
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION:2h}
+  ai:
+    mode: ${AI_MODE:remote}
+    base-url: ${AI_BASE_URL:http://127.0.0.1:5000}
+    endpoint: ${AI_ENDPOINT:/nlp/analyze}
+    timeout: ${AI_TIMEOUT:20s}
+  storage:
+    upload-dir: ${UPLOAD_DIR:./data/uploads}
+    report-dir: ${REPORT_DIR:./data/reports}
+    max-file-size: 10MB
+    max-total-size: 30MB
+    max-files: 5
+  demo-user:
+    enabled: ${DEMO_USER_ENABLED:false}
+    username: ${DEMO_USERNAME:demo}
+    password: ${DEMO_PASSWORD:demo123456}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_ENABLED:false}
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: ${SPRINGDOC_ENABLED:false}
