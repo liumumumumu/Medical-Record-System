@@ -69,6 +69,7 @@ public class CaseMapper {
 
     public CaseHistoryPageResponse.Item toHistoryItem(CaseDocument document) {
         CaseInput input = document.getInput();
+        CaseResult result = document.getResult();
         return new CaseHistoryPageResponse.Item(
                 document.getCaseId(),
                 input.patientName(),
@@ -76,6 +77,8 @@ public class CaseMapper {
                 input.age(),
                 input.department(),
                 input.chiefComplaint(),
+                result == null ? null : result.analysis().diagnosisTop1(),
+                input.preliminaryDiagnosis(),
                 document.getStatus(),
                 document.getCreatedAt(),
                 document.getUpdatedAt()

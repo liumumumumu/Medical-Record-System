@@ -19,6 +19,8 @@ public record CaseHistoryPageResponse(
             Integer age,
             Department department,
             String chiefComplaint,
+            String diagnosisTop1,
+            String preliminaryDiagnosis,
             JobStatus status,
             Instant createdAt,
             Instant updatedAt
