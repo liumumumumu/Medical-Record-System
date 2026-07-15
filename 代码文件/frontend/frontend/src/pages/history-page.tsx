@@ -2,7 +2,7 @@ import { FileTextOutlined, SearchOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { isUnauthorized, listCases } from "../services/medical-api";
-import type { CaseRecordView } from "../types/medical-record";
+import type { CaseSummaryView } from "../types/medical-record";
 
 type HistoryPageProps = {
   isLoggedIn: boolean;
@@ -14,15 +14,15 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
-function diagnosisOf(record: CaseRecordView) {
-  return record.aiResult?.analysis.diagnosisTop1 || record.patientInput.preliminaryDiagnosis || "等待分析结果";
+function diagnosisOf(record: CaseSummaryView) {
+  return record.diagnosisTop1 || record.preliminaryDiagnosis || "等待分析结果";
 }
 
 export function HistoryPage({ isLoggedIn, onAuthExpired, onRequireLogin }: HistoryPageProps) {
   const [keyword, setKeyword] = useState("");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(0);
-  const [records, setRecords] = useState<CaseRecordView[]>([]);
+  const [records, setRecords] = useState<CaseSummaryView[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -92,10 +92,10 @@ export function HistoryPage({ isLoggedIn, onAuthExpired, onRequireLogin }: Histo
           {records.map((record) => (
             <Link className="history-row" to={`/results/${record.id}`} key={record.id}>
               <div className="history-row__patient">
-                <strong>{record.patientInput.patientName || "未命名患者"}</strong>
-                <span>{record.patientInput.gender === "male" ? "男" : "女"} · {record.patientInput.age} 岁</span>
+                <strong>{record.patientName || "未命名患者"}</strong>
+                <span>{record.gender === "male" ? "男" : "女"} · {record.age} 岁</span>
               </div>
-              <p>{record.patientInput.chiefComplaint}</p>
+              <p>{record.chiefComplaint}</p>
               <p>{diagnosisOf(record)}</p>
               <span className={`case-status case-status--${record.status.toLowerCase()}`}>{record.status === "COMPLETED" ? "分析完成" : record.status === "ANALYSIS_FAILED" ? "分析失败" : "处理中"}</span>
               <time dateTime={record.createdAt}>{formatDate(record.createdAt)}</time>

@@ -17,6 +17,7 @@ import type {
   AuthUser,
   CaseCreateRequest,
   CaseRecordView,
+  CaseSummaryView,
   DepartmentCode,
   GenderCode,
   GenerationNeed,
@@ -129,18 +130,22 @@ type BackendCaseDetail = {
   updatedAt: string;
 };
 
+type BackendHistoryItem = {
+  caseId: string;
+  patientName: string;
+  gender: GenderCode;
+  age: number;
+  department?: DepartmentCode;
+  chiefComplaint: string;
+  diagnosisTop1?: string | null;
+  preliminaryDiagnosis?: string | null;
+  status: BackendJobStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
 type BackendHistoryPage = {
-  content: Array<{
-    caseId: string;
-    patientName: string;
-    gender: GenderCode;
-    age: number;
-    department?: DepartmentCode;
-    chiefComplaint: string;
-    status: BackendJobStatus;
-    createdAt: string;
-    updatedAt: string;
-  }>;
+  content: BackendHistoryItem[];
   page: number;
   size: number;
   totalElements: number;
@@ -277,6 +282,38 @@ function recordStatus(status: BackendJobStatus): CaseRecordView["status"] {
   if (status === "completed") return "COMPLETED";
   if (status === "failed" || status === "cancelled") return "ANALYSIS_FAILED";
   return "DRAFT";
+}
+
+export function mapHistorySummary(item: BackendHistoryItem): CaseSummaryView {
+  return {
+    id: item.caseId,
+    patientName: item.patientName,
+    gender: item.gender,
+    age: item.age,
+    department: item.department,
+    chiefComplaint: item.chiefComplaint,
+    diagnosisTop1: item.diagnosisTop1 ?? null,
+    preliminaryDiagnosis: item.preliminaryDiagnosis ?? null,
+    status: recordStatus(item.status),
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+  };
+}
+
+function summaryFromRecord(record: CaseRecordView): CaseSummaryView {
+  return {
+    id: record.id,
+    patientName: record.patientInput.patientName,
+    gender: record.patientInput.gender,
+    age: record.patientInput.age,
+    department: record.patientInput.department,
+    chiefComplaint: record.patientInput.chiefComplaint,
+    diagnosisTop1: record.aiResult?.analysis.diagnosisTop1 ?? null,
+    preliminaryDiagnosis: record.patientInput.preliminaryDiagnosis ?? null,
+    status: record.status,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+  };
 }
 
 function mapDetail(detail: BackendCaseDetail, lastError: string | null = null): CaseRecordView {
@@ -442,13 +479,20 @@ export async function createAndAnalyze(values: MedicalFormValues): Promise<CaseR
   return mapDetail(await backendDetail(created.caseId));
 }
 
-export async function listCases(keyword = "", page = 0, size = 20): Promise<PageResult<CaseRecordView>> {
-  if (USE_MOCK_API) return mockListCases(keyword, page, size);
+export async function listCases(keyword = "", page = 0, size = 20): Promise<PageResult<CaseSummaryView>> {
+  if (USE_MOCK_API) {
+    const mockPage = await mockListCases(keyword, page, size);
+    return { ...mockPage, items: mockPage.items.map(summaryFromRecord) };
+  }
   const history = await request(http.get<BackendHistoryPage>("/api/v1/cases", {
     params: { keyword: keyword.trim(), page, size },
   }));
-  const items = await Promise.all(history.content.map(async (item) => mapDetail(await backendDetail(item.caseId))));
-  return { items, total: history.totalElements, page: history.page, size: history.size };
+  return {
+    items: history.content.map(mapHistorySummary),
+    total: history.totalElements,
+    page: history.page,
+    size: history.size,
+  };
 }
 
 export async function getCase(id: string): Promise<CaseRecordView> {

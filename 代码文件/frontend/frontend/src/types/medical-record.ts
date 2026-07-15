@@ -115,6 +115,20 @@ export type CaseRecordView = {
   updatedAt: string;
 };
 
+export type CaseSummaryView = {
+  id: string;
+  patientName: string;
+  gender: GenderCode;
+  age: number;
+  department?: DepartmentCode | "";
+  chiefComplaint: string;
+  diagnosisTop1: string | null;
+  preliminaryDiagnosis: string | null;
+  status: CaseRecordView["status"];
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type PageResult<T> = {
   items: T[];
   total: number;

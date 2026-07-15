@@ -85,6 +85,21 @@ export function ResultsPage({ isLoggedIn, onAuthExpired, onRequireLogin }: Resul
     return () => { active = false; };
   }, [id, isLoggedIn, onAuthExpired]);
 
+  useEffect(() => {
+    if (!id || !isLoggedIn || !record || record.status !== "DRAFT") return;
+    const timer = window.setTimeout(() => {
+      getCase(id)
+        .then((nextRecord) => {
+          setRecord(nextRecord);
+          if (!editing) setEditedText(generatedText(nextRecord));
+        })
+        .catch((requestError) => {
+          if (isUnauthorized(requestError)) onAuthExpired();
+        });
+    }, 2000);
+    return () => window.clearTimeout(timer);
+  }, [id, isLoggedIn, record, editing, onAuthExpired]);
+
   async function saveEditedRecord() {
     if (!record) return;
     setSaving(true);
