@@ -2,6 +2,9 @@ from src.config import CONFIG_DIR, RESOURCE_DIR, load_json
 from src.text_utils import has_positive_occurrence, normalize_text
 
 
+# 语料中混入的日常泛化词，出现在“医学术语”结果里没有信息量。
+GENERIC_TERMS = frozenset({"休息", "保暖", "按摩", "治疗", "护理"})
+
 DEFAULT_TERMS = {
     "白细胞": "检查",
     "血常规": "检查",
@@ -28,7 +31,10 @@ class MedicalTermExtractor:
         resource_path = RESOURCE_DIR / "medical_terms.json"
         if resource_path.exists():
             terms.update(load_json(resource_path))
-        self.terms = sorted(terms, key=lambda term: (-len(term), term))
+        self.terms = sorted(
+            (term for term in terms if term not in GENERIC_TERMS),
+            key=lambda term: (-len(term), term),
+        )
 
     def extract(self, text: str) -> list[str]:
         normalized = normalize_text(text)

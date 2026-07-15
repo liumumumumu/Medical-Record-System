@@ -11,6 +11,13 @@ def test_medical_term_extraction_ignores_negated_disease():
     assert "糖尿病" not in terms
 
 
+def test_medical_term_extraction_skips_generic_everyday_words():
+    terms = MedicalTermExtractor().extract("发作时需安静休息，注意保暖，可局部按摩")
+    assert "休息" not in terms
+    assert "保暖" not in terms
+    assert "按摩" not in terms
+
+
 def test_record_contains_all_sections():
     patient = PatientInput(
         name="张三",

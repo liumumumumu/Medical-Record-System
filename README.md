@@ -66,7 +66,7 @@ flowchart LR
 | --- | --- |
 | 前端 | React 19、TypeScript、Vite 7、Ant Design、Axios、React Router |
 | 后端 | Java 21、Spring Boot 3.5、Spring Security、Spring Data MongoDB、WebClient |
-| AI 服务 | Python 3.13、Flask、scikit-learn、jieba、NumPy、joblib |
+| AI 服务 | Python 3.13、Flask、scikit-learn、NumPy、joblib |
 | 数据处理 | pandas、NHANES 2017–2018 公共健康数据、可复现 Python 脚本 |
 | 数据库 | MongoDB Community 8.0 |
 | 文档与文件 | Apache POI、PDFBox、DOCX 报告、OpenAPI / Postman |

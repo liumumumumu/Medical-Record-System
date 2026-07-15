@@ -17,6 +17,7 @@ from src.config import (  # noqa: E402
     ensure_output_directories,
     load_json,
 )
+from src.medical_term_extractor import GENERIC_TERMS  # noqa: E402
 
 
 ENTITY_TYPES = {
@@ -38,7 +39,11 @@ def build_medical_terms() -> dict[str, str]:
             for entity in item.get("entities", []):
                 entity_type = entity.get("type")
                 term = str(entity.get("entity", "")).strip()
-                if entity_type in ENTITY_TYPES and 2 <= len(term) <= 30:
+                if (
+                    entity_type in ENTITY_TYPES
+                    and 2 <= len(term) <= 30
+                    and term not in GENERIC_TERMS
+                ):
                     counts[(term, ENTITY_TYPES[entity_type])] += 1
 
     terms: dict[str, str] = {}

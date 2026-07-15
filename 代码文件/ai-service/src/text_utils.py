@@ -12,9 +12,14 @@ POSITIVE_SCOPE_PATTERN = re.compile(
 )
 
 
+# “无明显诱因”是病程描述习语，其中的“无”并不否定后续症状，需在归一化时整体剔除。
+NO_TRIGGER_IDIOM_PATTERN = re.compile(r"无(?:明显)?(?:诱因|原因)")
+
+
 def normalize_text(text: str) -> str:
     normalized = html.unescape(str(text or ""))
     normalized = re.sub(r"<[^>]+>", " ", normalized)
+    normalized = NO_TRIGGER_IDIOM_PATTERN.sub("", normalized)
     normalized = normalized.replace("\u3000", " ").replace("\xa0", " ")
     normalized = re.sub(r"[\r\n\t]+", " ", normalized)
     return re.sub(r"\s+", " ", normalized).strip()
@@ -43,15 +48,23 @@ def unique_preserve(values: Iterable[str]) -> list[str]:
 
 def extract_numeric_symptoms(text: str) -> list[str]:
     symptoms: list[str] = []
-    for match in re.finditer(r"(?:(?:体温|T)\s*[:：]?\s*)?(3[5-9](?:\.\d)?|4[0-2](?:\.\d)?)\s*℃", text, re.I):
+    for match in re.finditer(
+        r"(?:(?:体温|T)\s*[:：]?\s*)?(3[5-9](?:\.\d)?|4[0-2](?:\.\d)?)\s*(?:℃|°C|度)", text, re.I
+    ):
         temperature = float(match.group(1))
         if temperature >= 39:
             symptoms.extend(("发热", "高热"))
         elif temperature >= 37.3:
             symptoms.append("发热")
 
-    for match in re.finditer(r"(?:血压\s*[:：]?\s*)?(\d{2,3})\s*/\s*(\d{2,3})\s*(?:mmHg)?", text, re.I):
-        systolic, diastolic = int(match.group(1)), int(match.group(2))
+    for match in re.finditer(
+        r"(?:血压|BP)\s*[:：]?\s*(\d{2,3})\s*/\s*(\d{2,3})\s*(?:mmHg)?"
+        r"|(\d{2,3})\s*/\s*(\d{2,3})\s*mmHg",
+        text,
+        re.I,
+    ):
+        systolic = int(match.group(1) or match.group(3))
+        diastolic = int(match.group(2) or match.group(4))
         if systolic >= 140 or diastolic >= 90:
             symptoms.append("血压升高")
 
