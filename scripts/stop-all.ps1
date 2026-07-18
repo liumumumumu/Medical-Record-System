@@ -5,15 +5,31 @@ $PidFile = Join-Path $Root ".runtime\pids.json"
 . (Join-Path $PSScriptRoot "runtime-process.ps1")
 
 function Test-Port([int]$Port) {
-    return [bool](Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction SilentlyContinue)
+    $client = [Net.Sockets.TcpClient]::new()
+    try {
+        $attempt = $client.ConnectAsync("127.0.0.1", $Port)
+        if (-not $attempt.Wait(700)) { return $false }
+        return $client.Connected
+    } catch {
+        return $false
+    } finally {
+        $client.Dispose()
+    }
 }
 
 function Get-PortOwnerDescription([int]$Port) {
-    $connection = Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($null -eq $connection) { return "未知进程" }
-    $process = Get-CimInstance Win32_Process -Filter "ProcessId=$([int]$connection.OwningProcess)" -ErrorAction SilentlyContinue
-    if ($null -eq $process) { return "PID $($connection.OwningProcess)" }
-    return "$($process.Name)（PID $($process.ProcessId)）"
+    $ownerPid = $null
+    $netstat = Join-Path $env:SystemRoot "System32\netstat.exe"
+    foreach ($line in @(& $netstat -ano -p tcp 2>$null)) {
+        if ($line -match "^\s*TCP\s+\S+:$Port\s+\S+\s+LISTENING\s+(\d+)\s*$") {
+            $ownerPid = [int]$Matches[1]
+            break
+        }
+    }
+    if ($null -eq $ownerPid) { return "未知进程" }
+    $process = Get-Process -Id $ownerPid -ErrorAction SilentlyContinue
+    if ($null -eq $process) { return "PID $ownerPid" }
+    return "$($process.ProcessName)（PID $ownerPid）"
 }
 
 if (-not (Test-Path -LiteralPath $PidFile)) {

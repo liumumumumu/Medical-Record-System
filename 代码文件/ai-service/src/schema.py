@@ -3,7 +3,7 @@ import math
 import re
 from typing import Any
 
-from src.config import MODEL_VERSION
+from src.config import MODEL_VERSION, RECORD_MODEL_VERSION
 
 
 class ValidationError(ValueError):
@@ -179,6 +179,24 @@ class DiagnosisResult:
 
 
 @dataclass(frozen=True)
+class RecordGenerationInfo:
+    backend: str
+    model_name: str
+    model_version: str = RECORD_MODEL_VERSION
+    fallback_used: bool = False
+    warnings: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "backend": self.backend,
+            "modelName": self.model_name,
+            "modelVersion": self.model_version,
+            "fallbackUsed": self.fallback_used,
+            "warnings": list(self.warnings),
+        }
+
+
+@dataclass(frozen=True)
 class AnalysisResult:
     generated_record: str
     symptoms: list[str]
@@ -190,10 +208,17 @@ class AnalysisResult:
     confidence: float
     low_confidence: bool
     low_confidence_reason: str | None
+    formalized_input: dict[str, str]
+    model_version: str = MODEL_VERSION
+    record_generation: RecordGenerationInfo = RecordGenerationInfo(
+        backend="template",
+        model_name="template",
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "generatedRecord": self.generated_record,
+            "recordGeneration": self.record_generation.to_dict(),
             "symptoms": self.symptoms,
             "medicalTerms": self.medical_terms,
             "diagnosisTop1": self.diagnosis_top1,
@@ -201,8 +226,9 @@ class AnalysisResult:
             "diagnosisReason": self.diagnosis_reason,
             "treatmentAdvice": self.treatment_advice,
             "content": self.diagnosis_reason,
-            "modelVersion": MODEL_VERSION,
+            "modelVersion": self.model_version,
             "confidence": round(self.confidence, 6),
             "lowConfidence": self.low_confidence,
             "lowConfidenceReason": self.low_confidence_reason,
+            "formalizedInput": self.formalized_input,
         }

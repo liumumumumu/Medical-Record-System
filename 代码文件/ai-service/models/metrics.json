@@ -25,7 +25,7 @@
     "macroF1": 0.849081
   },
   "environment": {
-    "python": "3.13.0",
-    "scikitLearn": "1.8.0"
+    "python": "3.13.9",
+    "scikitLearn": "1.7.2"
   }
 }

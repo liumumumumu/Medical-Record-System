@@ -24,7 +24,7 @@
 
 本项目采用 `React → Spring Boot → Flask AI → MongoDB` 的四层架构，将原本分散的患者信息、检查资料和文本描述组织为清晰的病例处理流程。系统支持用户认证、病例提交、异步 AI 分析、附件解析、结果复核、历史检索和 DOCX 报告下载，并提供独立的数据清洗与质量分析流水线。
 
-在线演示默认调用真实 Flask AI 服务；Mock 仅用于显式的离线测试。仓库已经包含运行演示所需的训练模型、知识索引和脱敏样例，正常使用无需重新训练模型，也无需下载根目录外的 27 GB 原始研究语料。
+在线演示默认调用真实 Flask AI 服务；Mock 仅用于显式的离线测试。仓库包含辅助诊断模型、知识索引和脱敏样例；病历生成权重体积较大，不进入 Git，答辩机器需保留本地 `models/record_generator_v1/`，其他机器可按病历生成改造说明复训。训练不使用 27 GB Synthea 语料。
 
 ## ✨ 核心功能
 
@@ -33,13 +33,14 @@
 | 用户与权限 | 注册、登录、JWT 会话、注销失效、病例所有权校验 |
 | 病例录入 | 基本信息、主诉、现病史、既往史、体征、辅助检查等结构化字段 |
 | 附件处理 | 支持 PDF、DOC、DOCX 文本提取；图片安全保存并明确标记解析状态 |
-| AI 辅助分析 | 症状识别、医学术语抽取、常见病辅助判断、危险信号提示与结构化病历生成 |
+| 病历生成 | 独立 T5 Transformer 将患者口语、自述与既往诊疗记录转换为精简住院病历；所有展示字段做事实保持的临床书面化，并带事实约束、受约束二次生成和模板兜底 |
+| AI 辅助分析 | 症状识别、医学术语抽取、常见病辅助判断与危险信号提示；不覆盖正式病历中的医生输入 |
 | 异步任务 | 病例提交后返回任务 ID，可查询分析进度、完成状态和稳定错误码 |
 | 结果管理 | 结果查看、历史分页与搜索、人工复核编辑、附件鉴权下载 |
 | 报告导出 | 生成包含结构化信息、分析结果和免责声明的 DOCX 报告 |
 | 数据流水线 | NHANES 合并、标准化、数据质量检查以及糖尿病、肾功能、心血管分析子集 |
 
-AI 服务结合监督模型、规则层与知识检索层：监督模型覆盖 5 类高质量训练标签，完整规则与检索能力覆盖 20 类常见疾病；当前核心模型测试集 `accuracy = 0.8366`、`macro-F1 = 0.8491`。详细边界与评估方法见 [AI 模型报告](代码文件/ai-service/model_report.md)。
+病历文本由独立的 **Randeng-T5 生成模型**处理；辅助诊断则结合监督分类模型、规则层与知识检索层，两者互不覆盖。辅助诊断监督模型覆盖 5 类高质量训练标签，完整规则与检索能力覆盖 20 类常见疾病。正式分类模型为 **BERT 微调 v2.0.0**（IMCS-21 金标 + 远程监督弱标签训练，官方测试集 `macro-F1 = 0.8598`）；早期 TF-IDF+逻辑回归 v1.0.0（`macro-F1 = 0.8491`）经两轮对比实验综合评估后已弃用，仅作无 GPU 环境的自动降级兜底。详细说明见 [病历生成改造说明](docs/project/record-generation-implementation.md)、[AI 模型报告](代码文件/ai-service/model_report.md)、[Transformer 对比实验](代码文件/ai-service/transformer_comparison.md) 及 [数据扩充实验报告](代码文件/ai-service/augmentation_report.md)。
 
 ## 🧭 系统架构
 
@@ -50,7 +51,8 @@ flowchart LR
     B -->|"异步 HTTP"| A["Flask AI 服务"]
     B --> M[("MongoDB")]
     B --> S[("附件与 DOCX 报告")]
-    A --> H["监督模型 + 规则 + 知识检索"]
+    A --> G["T5 病历生成 + 事实约束/守卫"]
+    A --> H["BERT 辅助诊断 + 规则 + 知识检索"]
 
     subgraph Offline["离线数据分析"]
         D["NHANES 与脱敏病例样例"] --> P["清洗 / 标准化 / 质量检查"]
@@ -66,7 +68,7 @@ flowchart LR
 | --- | --- |
 | 前端 | React 19、TypeScript、Vite 7、Ant Design、Axios、React Router |
 | 后端 | Java 21、Spring Boot 3.5、Spring Security、Spring Data MongoDB、WebClient |
-| AI 服务 | Python 3.13、Flask、scikit-learn、NumPy、joblib |
+| AI 服务 | Python 3.13、Flask、PyTorch、HuggingFace Transformers（BERT 微调）、scikit-learn、NumPy、joblib |
 | 数据处理 | pandas、NHANES 2017–2018 公共健康数据、可复现 Python 脚本 |
 | 数据库 | MongoDB Community 8.0 |
 | 文档与文件 | Apache POI、PDFBox、DOCX 报告、OpenAPI / Postman |
@@ -113,6 +115,7 @@ git clone https://github.com/liumumumumu/Medical-Record-System.git
 cd Medical-Record-System
 
 python -m pip install -r ".\代码文件\ai-service\requirements.txt"
+python -m pip install -r ".\代码文件\ai-service\requirements-generation.txt"
 python -m pip install -r ".\代码文件\data-analysis\requirements.txt"
 
 Push-Location ".\代码文件\frontend\frontend"
@@ -130,7 +133,7 @@ Spring Boot 使用 Maven Wrapper，首次构建时会自动下载 Java 依赖。
 启动答辩演示.cmd
 ```
 
-启动器会自动完成环境检查、按需构建、启动 AI/后端/前端、验证固定演示账号并打开浏览器。代码未变化时会复用构建产物。
+启动器会自动完成环境检查、按需构建、启动 AI/后端/前端、验证固定演示账号并打开浏览器。代码未变化时会复用构建产物；当前演示机实测冷启动约 19 秒，系统已运行时重复启动约 0.5 秒。
 
 也可以在 PowerShell 中运行：
 
@@ -159,7 +162,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\start-all.ps1" -E
 关闭答辩演示.cmd
 ```
 
-关闭脚本会同时校验 PID、启动时间、可执行文件和命令行，仅结束由本项目启动的前端、后端和 AI 进程；MongoDB 系统服务保持运行。
+关闭脚本会同时校验 PID、启动时间和可执行文件路径，仅结束由本项目启动的前端、后端和 AI 进程；MongoDB 系统服务保持运行。
 
 ## ✅ 测试与验证
 
@@ -195,6 +198,7 @@ python .\scripts\e2e-smoke.py --filler-count 0
 - [四人分工与交接说明](docs/project/team-collaboration.md)
 - [修复后全链路联调报告](docs/reports/e2e-report-fixed-2026-07-13.md)
 - [AI 服务说明](代码文件/ai-service/README.md)
+- [Transformer 病历生成改造说明](docs/project/record-generation-implementation.md)
 - [后端服务说明](代码文件/backend-service/README.md)
 - [数据分析说明](代码文件/data-analysis/README.md)
 - [前端说明](代码文件/frontend/README.md)

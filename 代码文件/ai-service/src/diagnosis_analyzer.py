@@ -1,16 +1,51 @@
+import os
 from pathlib import Path
 
 import joblib
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-from src.config import CONFIG_DIR, MODEL_DIR, RESOURCE_DIR, load_json
+from src.config import CONFIG_DIR, MODEL_DIR, MODEL_VERSION, RESOURCE_DIR, load_json
 from src.schema import DiagnosisResult
 from src.text_utils import has_positive_occurrence, normalize_text
 
 
 MIN_ASSERTED_SCORE = 0.25
 MIN_CANDIDATE_SCORE = 0.15
+TRANSFORMER_DIR = MODEL_DIR / "transformer_production"
+TRANSFORMER_MAX_LENGTH = 256
+TRANSFORMER_MODEL_VERSION = "2.0.0"
+
+TRANSFORMER_TEMPERATURE = float(os.getenv("AI_TRANSFORMER_TEMPERATURE", "2.5"))
+
+_TRANSFORMER_CACHE: dict[str, object] = {"loaded": False, "backend": None}
+
+
+def _load_transformer_backend() -> dict | None:
+    if _TRANSFORMER_CACHE["loaded"]:
+        return _TRANSFORMER_CACHE["backend"]
+    _TRANSFORMER_CACHE["loaded"] = True
+    if not (TRANSFORMER_DIR / "config.json").exists():
+        return None
+    try:
+        import torch
+        from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+        tokenizer = AutoTokenizer.from_pretrained(TRANSFORMER_DIR)
+        model = AutoModelForSequenceClassification.from_pretrained(TRANSFORMER_DIR)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model.to(device).eval()
+        backend = {
+            "torch": torch,
+            "tokenizer": tokenizer,
+            "model": model,
+            "device": device,
+            "labels": [model.config.id2label[i] for i in range(model.config.num_labels)],
+        }
+    except Exception:
+        backend = None
+    _TRANSFORMER_CACHE["backend"] = backend
+    return backend
 
 
 class DiagnosisAnalyzer:
@@ -29,19 +64,57 @@ class DiagnosisAnalyzer:
             knowledge_path or RESOURCE_DIR / "knowledge_index.joblib"
         )
 
+        mode = os.getenv("AI_MODEL_BACKEND", "auto").strip().lower()
+        self.transformer_backend = None if mode == "sklearn" else _load_transformer_backend()
+
     @staticmethod
     def _load_artifact(path: Path) -> dict | None:
         return joblib.load(path) if path.exists() else None
 
     @property
     def model_loaded(self) -> bool:
-        return self.model_artifact is not None
+        return self.transformer_backend is not None or self.model_artifact is not None
+
+    @property
+    def model_backend(self) -> str:
+        if self.transformer_backend is not None:
+            return "transformer"
+        return "sklearn" if self.model_artifact is not None else "none"
+
+    @property
+    def model_version(self) -> str:
+        return (
+            TRANSFORMER_MODEL_VERSION
+            if self.transformer_backend is not None
+            else MODEL_VERSION
+        )
 
     @property
     def knowledge_loaded(self) -> bool:
         return self.knowledge_artifact is not None
 
+    def _transformer_scores(self, text: str) -> dict[str, float]:
+        backend = self.transformer_backend
+        torch = backend["torch"]
+        with torch.no_grad():
+            encoded = backend["tokenizer"](
+                text,
+                truncation=True,
+                max_length=TRANSFORMER_MAX_LENGTH,
+                return_tensors="pt",
+            ).to(backend["device"])
+            logits = backend["model"](**encoded).logits[0]
+            probabilities = torch.softmax(
+                logits / TRANSFORMER_TEMPERATURE, dim=-1
+            ).cpu().tolist()
+        return {
+            label: float(probability)
+            for label, probability in zip(backend["labels"], probabilities)
+        }
+
     def _model_scores(self, text: str) -> dict[str, float]:
+        if self.transformer_backend is not None:
+            return self._transformer_scores(text)
         if not self.model_artifact:
             return {}
         vectorizer = self.model_artifact["vectorizer"]

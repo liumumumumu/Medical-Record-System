@@ -50,6 +50,25 @@ class RemoteAiClientTest {
                           "treatment_advice": "建议进一步评估",
                           "content": "综合分析",
                           "model_version": "rules-1.0",
+                          "record_generation": {
+                            "backend": "transformer",
+                            "modelName": "Randeng-T5",
+                            "modelVersion": "record-gen-t5-v1.2.0",
+                            "fallbackUsed": false,
+                            "warnings": []
+                          },
+                          "formalized_input": {
+                            "chiefComplaint": "发热、咳嗽3天",
+                            "presentIllness": "患者3天前出现发热、咳嗽",
+                            "pastHistory": "既往无特殊病史",
+                            "allergyHistory": "否认药物过敏史",
+                            "vitalSigns": "T 38.5℃",
+                            "physicalExam": "咽部充血",
+                            "auxiliaryExam": "未提供",
+                            "preliminaryDiagnosis": "考虑上呼吸道感染",
+                            "treatmentTaken": "曾接受物理降温",
+                            "medicationUsage": "曾服用退热药"
+                          },
                           "confidence": 0.86,
                           "low_confidence": false
                         }
@@ -61,6 +80,10 @@ class RemoteAiClientTest {
         assertThat(result.generatedRecord()).isEqualTo("结构化病历");
         assertThat(result.diagnosisCandidates()).containsExactly("上呼吸道感染", "流感");
         assertThat(result.modelVersion()).isEqualTo("rules-1.0");
+        assertThat(result.recordGeneration().backend()).isEqualTo("transformer");
+        assertThat(result.recordGeneration().modelVersion()).isEqualTo("record-gen-t5-v1.2.0");
+        assertThat(result.formalizedRecord().chiefComplaint()).isEqualTo("发热、咳嗽3天");
+        assertThat(result.formalizedRecord().treatmentTaken()).isEqualTo("曾接受物理降温");
         assertThat(result.confidence()).isEqualTo(0.86);
         assertThat(result.lowConfidence()).isFalse();
     }
@@ -86,6 +109,7 @@ class RemoteAiClientTest {
         assertThat(result.generatedRecord()).isEqualTo("结构化病历");
         assertThat(result.diagnosisTop1()).isEqualTo("上呼吸道感染");
         assertThat(result.modelVersion()).isEqualTo("unknown");
+        assertThat(result.recordGeneration()).isEqualTo(RecordGenerationInfo.unknown());
     }
 
     @Test

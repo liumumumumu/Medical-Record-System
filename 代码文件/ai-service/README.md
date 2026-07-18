@@ -4,7 +4,9 @@
 
 ## 已实现能力
 
-- IMCS-21 官方划分训练的五类监督模型：上呼吸道感染、普通感冒、支气管炎、腹泻、便秘。
+- **Transformer 病历生成（record-gen-t5-v1.2.0）**：基于 `IDEA-CCNL/Randeng-T5-77M-MultiTask-Chinese`，用真实患者自述/医患对话作为输入、规范病历作为目标，生成主诉、现病史、既往史和辅助检查四段。运行时增加口语到临床书面语规范化与原始事实锚定；过敏史、生命体征、体格检查、医生诊断、已接受治疗和用药记录也会在不新增事实的前提下保守书面化，再组装成精简住院病历。正式化字段会随 `formalizedInput` 传给 Spring Boot，结果页不再重复展示口语原文。该链路与 BERT 辅助诊断完全独立，并带事实守卫、受约束重试和显式模板兜底。实现与复现说明见 [`../../docs/project/record-generation-implementation.md`](../../docs/project/record-generation-implementation.md)。
+- **正式监督模型（v2.0.0）**：`bert-base-chinese` 微调，覆盖五个核心类（上呼吸道感染、普通感冒、支气管炎、腹泻、便秘），训练集为 IMCS-21 官方划分金标 1,358 条 + 远程监督弱标签 2,500 条，官方测试集 accuracy 0.8499、macro-F1 0.8598，推理时做温度缩放（T=2.5）校准。选型经两轮对比实验（`transformer_comparison.md`、`augmentation_report.md`），综合准确率、最难类改善与扩展空间后正式采用。
+- 早期 TF-IDF + 逻辑回归模型（v1.0.0，macro-F1 0.8491）**已弃用**，仅在无 BERT 权重或未装 torch 的环境自动降级兜底（接口契约一致，`/health` 的 `modelBackend` 字段区分）。BERT 权重约 391MB 不入库，答辩演示机已就绪；其他机器可用 `python scripts/train_transformer_augmented.py` 约 3 分钟复训。
 - 基于 9,620 条中文疾病知识记录的检索层，以及覆盖 20 类常见病的稳定规则层。
 - 5,584 个由 CMeEE-V2 标注数据整理的疾病、药物、检查、操作、设备和科室术语。
 - 同义词归一、否定识别、体温/血压/血糖数值识别和危险症状提示。
@@ -43,23 +45,34 @@ cd "D:\医疗病历生成与分析系统\代码文件\ai-service"
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
+python -m pip install -r requirements-generation.txt
 python app.py
 ```
 
-仓库已包含训练好的模型和知识索引，正常演示无需重新训练。服务默认监听 `http://localhost:5000`。
+仓库包含辅助诊断模型和知识索引。病历生成权重位于本地 `models/record_generator_v1/` 且不进入 Git；该目录存在时无需重新训练，否则应先执行下方病历生成数据准备与训练命令。服务默认监听 `http://localhost:5000`。
 
 ## 从原始数据复现
 
 ```powershell
 python scripts/download_disease_database.py
 python scripts/prepare_resources.py
-python scripts/train_model.py
+python scripts/train_model.py                 # v1 基线（已弃用，供对比复现）
+python scripts/train_transformer_augmented.py # v2 正式模型（需 torch+transformers，约3分钟）
 python scripts/evaluate_model.py
 python scripts/evaluate_ai_cases.py
+python scripts/prepare_record_generation_data.py
+python scripts/train_record_generator.py
+python scripts/prepare_record_alignment_data.py
+python scripts/align_record_generator.py --base-dir models/record_generator_v1 --output-dir models/record_generator_formal_v2 --train-file alignment_real_train.jsonl --learning-rate 1e-5
+python scripts/evaluate_record_generator.py --model-dir models/record_generator_v1 --data-file ../../dataset/derived/record-generation-v1/alignment_test.jsonl
+python scripts/evaluate_oral_formalization.py
 python -m pytest
+# 全系统启动后，在仓库根目录运行：python scripts/e2e-oral-formalization.py
 ```
 
-下载脚本固定 Hugging Face 数据版本，并在 `dataset/Disease_Database/SOURCE.json` 保存 SHA-256。训练固定随机种子 42，并使用 IMCS-21 原始 train/dev/test 划分。
+`prepare_record_alignment_data.py` 会拒绝把“口语输入→口语摘抄”的弱标注用于书面化微调，并检查输入中不存在由参考答案反构造的整段泄露；候选权重通过独立 test 和短口语运行时验收后，再提升到 `models/record_generator_v1/`。更完整的复现说明见 `../../docs/project/record-generation-implementation.md`。训练固定随机种子 42，并保持 IMCS-21 原始 train/dev/test 隔离。
+
+最终 v1.2.0 在 811 条未参与训练的真实对话同构 test 上 BLEU-2 0.3990、ROUGE-L 0.5357、四段解析/完整率 100%、数值一致率 98.40%、关键疾病/药物术语一致率 94.70%。其中 BLEU-2 与数值一致率未达到原先设置的 0.45/99% 门槛，必须如实保留；运行时事实守卫会拒绝新增数值。另有 5 组短口语专项病例（胃肠、呼吸、神经、泌尿、儿科）全部保持 Transformer 路径、无兜底、必需事实完整且不残留指定口语词。真实 HTTP 验收还要求摘要、6 个结构化字段、完整正文和 DOCX 同时书面化；结果保存在 `../../output/e2e/oral-formalization.json`。该结果不代表临床有效性。
 
 ## 快速检查
 
@@ -83,7 +96,7 @@ Invoke-RestMethod -Method Post -Uri http://localhost:5000/nlp/analyze `
 
 完整字段和错误格式见 `api_document.md`。若模型文件缺失，服务仍可启动并使用知识检索和规则，但 `/health` 会把 `modelLoaded` 标为 `false`。
 
-CYH 前端的 17 字段请求应调用 `POST /nlp/analyze/frontend`；CYL 标准化 snake_case 病例应调用 `POST /nlp/analyze/standardized`。两者响应均可映射到 `summary`、`structuredRecord`、`analysis` 和 `attachments`。
+CYH 前端的 17 字段请求应调用 `POST /nlp/analyze/frontend`；CYL 标准化 snake_case 病例应调用 `POST /nlp/analyze/standardized`。两者响应中的 `summary`、`structuredRecord` 和人工诊断/治疗/用药字段均为书面化结果；原始输入仍由 Spring Boot 保存在 `patientInput` 中供追溯。
 
 ## 安全边界
 

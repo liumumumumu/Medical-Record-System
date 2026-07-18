@@ -55,6 +55,14 @@ export type AttachmentView = {
   confidence?: number | null;
 };
 
+export type RecordGenerationInfo = {
+  backend: "transformer" | "template" | "unknown";
+  modelName: string;
+  modelVersion: string;
+  fallbackUsed: boolean;
+  warnings: string[];
+};
+
 export type AiResult = {
   status?: "completed" | "failed";
   generatedAt?: string;
@@ -65,6 +73,7 @@ export type AiResult = {
     confidence: number;
     lowConfidence: boolean;
   };
+  recordGeneration: RecordGenerationInfo;
   summary: {
     patientName: string;
     gender: GenderCode;

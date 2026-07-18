@@ -1,0 +1,42 @@
+{
+  "modelName": "bert-base-chinese-finetuned-augmented",
+  "augmentation": "distant supervision, cap 500/class (same pool/seed as train_augmented.py)",
+  "trainSize": 3858,
+  "trainingSeconds": 162.3,
+  "history": [
+    {
+      "epoch": 1,
+      "trainLoss": 1.134,
+      "accuracy": 0.808989,
+      "macroF1": 0.826778
+    },
+    {
+      "epoch": 2,
+      "trainLoss": 0.6306,
+      "accuracy": 0.87191,
+      "macroF1": 0.871657
+    },
+    {
+      "epoch": 3,
+      "trainLoss": 0.4707,
+      "accuracy": 0.88764,
+      "macroF1": 0.889784
+    },
+    {
+      "epoch": 4,
+      "trainLoss": 0.3519,
+      "accuracy": 0.869663,
+      "macroF1": 0.875218
+    },
+    {
+      "epoch": 5,
+      "trainLoss": 0.2592,
+      "accuracy": 0.88764,
+      "macroF1": 0.891797
+    }
+  ],
+  "test": {
+    "accuracy": 0.84989,
+    "macroF1": 0.859812
+  }
+}

@@ -12,7 +12,6 @@ except ImportError:
 from src.schema import ValidationError
 from src.service import MedicalAIService
 
-
 def create_app(service: MedicalAIService | None = None) -> Flask:
     app = Flask(__name__)
     app.json.ensure_ascii = False

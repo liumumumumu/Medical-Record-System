@@ -1,0 +1,101 @@
+{
+  "modelVersion": "record-gen-t5-v1.0.0",
+  "startedAt": "2026-07-16T16:26:16.827476+00:00",
+  "completedAt": "2026-07-16T17:49:54.688504+00:00",
+  "device": "cuda",
+  "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU",
+  "config": {
+    "base_model": "IDEA-CCNL/Randeng-T5-77M-MultiTask-Chinese",
+    "base_revision": "06d379d7375245f31cfb87166eff134cfeb5dead",
+    "model_version": "record-gen-t5-v1.0.0",
+    "source_max_length": 768,
+    "target_max_length": 320,
+    "batch_size": 2,
+    "gradient_accumulation": 8,
+    "learning_rate": 3e-05,
+    "warmup_ratio": 0.1,
+    "weak_epochs": 1,
+    "gold_epochs": 5,
+    "patience": 2,
+    "seed": 42,
+    "generation_beams": 4,
+    "fp16": false,
+    "bf16": true
+  },
+  "dataCounts": {
+    "weakTrain": 17083,
+    "goldTrain": 7405,
+    "goldDev": 833
+  },
+  "bestDevRougeL": 0.625009841989038,
+  "history": {
+    "weak": [
+      {
+        "epoch": 1.0,
+        "meanLoss": 0.6976643169287429,
+        "seconds": 1770.899958
+      }
+    ],
+    "gold": [
+      {
+        "epoch": 1.0,
+        "meanLoss": 2.0462068067574353,
+        "seconds": 815.9493079999993
+      },
+      {
+        "epoch": 1.0,
+        "meanLoss": 1.4638455314247343,
+        "seconds": 770.7431051999993
+      },
+      {
+        "epoch": 1.0,
+        "meanLoss": 1.300032254198806,
+        "seconds": 740.3099935999999
+      }
+    ],
+    "dev": [
+      {
+        "bleu2": 0.5280513577303667,
+        "bleu4": 0.42900320295892347,
+        "rouge1": 0.6396223464202566,
+        "rouge2": 0.521607834723479,
+        "rougeL": 0.625009841989038,
+        "parseRate": 1.0,
+        "sectionCompleteness": 1.0,
+        "numericConsistency": 0.9951980792316927,
+        "sampleCount": 833.0,
+        "seconds": 288.62281359999906,
+        "samplesPerSecond": 2.8861197408824744,
+        "epoch": 1.0
+      },
+      {
+        "bleu2": 0.561265961786933,
+        "bleu4": 0.4570574901321108,
+        "rouge1": 0.6331545328759534,
+        "rouge2": 0.5189954930113806,
+        "rougeL": 0.617636571138766,
+        "parseRate": 1.0,
+        "sectionCompleteness": 1.0,
+        "numericConsistency": 0.992797118847539,
+        "sampleCount": 833.0,
+        "seconds": 306.21332640000037,
+        "samplesPerSecond": 2.720325760453249,
+        "epoch": 2.0
+      },
+      {
+        "bleu2": 0.5694435600330026,
+        "bleu4": 0.46635048112470867,
+        "rouge1": 0.6393111049479928,
+        "rouge2": 0.5251551523123607,
+        "rougeL": 0.624000872444242,
+        "parseRate": 1.0,
+        "sectionCompleteness": 1.0,
+        "numericConsistency": 0.9771908763505402,
+        "sampleCount": 833.0,
+        "seconds": 324.3740293999999,
+        "samplesPerSecond": 2.568023098337478,
+        "epoch": 3.0
+      }
+    ]
+  }
+}

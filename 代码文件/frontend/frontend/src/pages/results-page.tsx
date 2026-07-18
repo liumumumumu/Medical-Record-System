@@ -33,6 +33,13 @@ function generatedText(record: CaseRecordView) {
   return record.editedRecord || record.generatedRecord || record.aiResult?.structuredRecord.generatedRecord || "后端暂未返回可编辑的结构化病历文本。";
 }
 
+function generationLabel(aiResult: AiResult | null) {
+  const generation = aiResult?.recordGeneration;
+  if (!generation || generation.backend === "unknown") return "生成方式未知";
+  if (generation.backend === "transformer") return "Transformer 生成";
+  return generation.fallbackUsed ? "模板安全兜底" : "模板生成";
+}
+
 function AnalysisContent({ aiResult }: { aiResult: AiResult | null }) {
   if (!aiResult) return <p className="result-muted">本病例尚未获得 AI 分析结果，请查看状态说明或稍后重试。</p>;
   const { analysis } = aiResult;
@@ -164,6 +171,7 @@ export function ResultsPage({ isLoggedIn, onAuthExpired, onRequireLogin }: Resul
 
   const patient = record.aiResult?.summary ?? record.patientInput;
   const structured = record.aiResult?.structuredRecord;
+  const recordGeneration = record.aiResult?.recordGeneration;
   const attachments = record.aiResult?.attachments ?? [];
 
   return (
@@ -181,7 +189,7 @@ export function ResultsPage({ isLoggedIn, onAuthExpired, onRequireLogin }: Resul
       <div className="results-document">
         <section className="result-section"><div className="result-section__index">01</div><div className="result-section__content"><p className="section-kicker">Summary</p><h3>病例摘要</h3><dl className="summary-list"><div><dt>患者</dt><dd>{text(patient.patientName, "未命名患者")}</dd></div><div><dt>性别</dt><dd>{genderLabels[patient.gender] ?? "未填写"}</dd></div><div><dt>年龄</dt><dd>{patient.age ?? "未填写"} 岁</dd></div><div><dt>就诊科室</dt><dd>{departmentLabels[patient.department ?? ""] ?? "未填写"}</dd></div><div><dt>就诊日期</dt><dd>{text(patient.visitDate)}</dd></div><div><dt>主诉</dt><dd>{text(patient.chiefComplaint)}</dd></div></dl></div></section>
 
-        <section className="result-section"><div className="result-section__index">02</div><div className="result-section__content"><p className="section-kicker">Structured Record</p><h3>结构化病历</h3>{editing ? <div className="record-editor"><label htmlFor="edited-record">可编辑病历文本</label><textarea id="edited-record" className="form-input form-textarea" value={editedText} onChange={(event) => setEditedText(event.target.value)} /><button className="primary-button" type="button" disabled={saving} onClick={() => { void saveEditedRecord(); }}><SaveOutlined />{saving ? "保存中" : "保存修改"}</button></div> : <div className="record-copy"><article><h4>生成病历</h4><p>{generatedText(record)}</p></article><article><h4>现病史</h4><p>{text(structured?.presentIllness ?? record.patientInput.presentIllness)}</p></article><article><h4>既往病史</h4><p>{text(structured?.pastHistory ?? record.patientInput.pastHistory, "未提供")}</p></article><article><h4>过敏史</h4><p>{text(structured?.allergyHistory ?? record.patientInput.allergyHistory)}</p></article><article><h4>生命体征与体格检查</h4><p>{text(structured?.vitalSigns ?? record.patientInput.vitalSigns)}；{text(structured?.physicalExam ?? record.patientInput.physicalExam)}</p></article><article><h4>辅助检查</h4><p>{text(structured?.auxiliaryExam ?? record.patientInput.auxiliaryExam)}</p></article></div>}</div></section>
+        <section className="result-section"><div className="result-section__index">02</div><div className="result-section__content"><p className="section-kicker">Structured Record</p><h3>结构化病历</h3><div className="record-generation-status"><span data-backend={recordGeneration?.backend ?? "unknown"}>{generationLabel(record.aiResult)}</span><small>{text(recordGeneration?.modelVersion, "历史病例未记录模型版本")}</small></div>{recordGeneration?.warnings.map((warning) => <p className="record-generation-warning" key={warning}>{warning}</p>)}{editing ? <div className="record-editor"><label htmlFor="edited-record">可编辑病历文本</label><textarea id="edited-record" className="form-input form-textarea" value={editedText} onChange={(event) => setEditedText(event.target.value)} /><button className="primary-button" type="button" disabled={saving} onClick={() => { void saveEditedRecord(); }}><SaveOutlined />{saving ? "保存中" : "保存修改"}</button></div> : <div className="record-copy"><article><h4>生成病历</h4><p>{generatedText(record)}</p></article><article><h4>现病史</h4><p>{text(structured?.presentIllness ?? record.patientInput.presentIllness)}</p></article><article><h4>既往病史</h4><p>{text(structured?.pastHistory ?? record.patientInput.pastHistory, "未提供")}</p></article><article><h4>过敏史</h4><p>{text(structured?.allergyHistory ?? record.patientInput.allergyHistory)}</p></article><article><h4>生命体征与体格检查</h4><p>{text(structured?.vitalSigns ?? record.patientInput.vitalSigns)}；{text(structured?.physicalExam ?? record.patientInput.physicalExam)}</p></article><article><h4>辅助检查</h4><p>{text(structured?.auxiliaryExam ?? record.patientInput.auxiliaryExam)}</p></article></div>}</div></section>
 
         <section className="result-section"><div className="result-section__index">03</div><div className="result-section__content"><p className="section-kicker">AI Assisted Analysis</p><h3>分析建议</h3><AnalysisContent aiResult={record.aiResult} />{record.status === "ANALYSIS_FAILED" ? <p className="medical-notice">本次分析未完成：{text(record.lastError, "后端暂未提供失败原因")}。病例已保留，可在服务恢复后重新处理。</p> : null}</div></section>
 

@@ -27,9 +27,9 @@
 | `physicalExam` | `physical_exam` | 进入症状抽取和病历 |
 | `auxiliaryExam` | `lab_results` | 进入数值/术语抽取和病历 |
 | `attachments` | `attachments` | 当前只返回文件名元数据，不解析文件内容 |
-| `preliminaryDiagnosis` | 人工初步诊断 | 原样保留，不加入模型文本，避免标签泄漏和自证循环 |
-| `treatmentTaken` | 人工治疗记录 | 原样保留，不改变 AI 安全建议 |
-| `medicationUsage` | 人工用药记录 | 原样保留，不生成或修改处方 |
+| `preliminaryDiagnosis` | 人工初步诊断 | 不加入辅助诊断模型；保留事实并转换为书面语后进入病历 |
+| `treatmentTaken` | 人工治疗记录 | 不改变 AI 安全建议；保留事实并转换为书面语后进入病历 |
+| `medicationUsage` | 人工用药记录 | 不生成或修改处方；保留药名/剂量事实并转换为书面语 |
 | `generationNeeds` | 生成需求 | 原样返回，供后端/前端决定展示区域 |
 
 五个必填字段为：`patientName`、`gender`、`age`、`chiefComplaint`、`presentIllness`。`pastHistory` 为选填，缺省时按“未提供”处理。
@@ -38,13 +38,15 @@
 
 v2 响应直接分为：
 
-- `summary`：对应结果页病例摘要。
-- `structuredRecord`：对应现病史、既往史、过敏史、生命体征、体格检查、辅助检查和完整生成病历。
-- `analysis`：保留人工输入，并增加症状、术语、Top-1/Top-3、理由、安全建议、低置信度和免责声明。
+- `summary`：对应结果页病例摘要，其中主诉为书面化结果。
+- `structuredRecord`：对应书面化后的现病史、既往史、过敏史、生命体征、体格检查、辅助检查和完整生成病历。
+- `analysis`：人工诊断/治疗/用药为书面化结果，并增加症状、术语、Top-1/Top-3、理由、安全建议、低置信度和免责声明。
 - `attachments`：当前只标记 `metadata_only`；真实文件 URL 和解析结果由后端/数据处理成员补充。
 - `model`：模型名、版本、融合置信分和低置信标记。
 
 前端当前 `GeneratedRecord` 仍只有 `{id, generatedAt, values}`，接入时应改为 `handoff/frontend-ai-contract.ts` 中的 `FrontendAnalysisResult`，不要再把 AI 数据塞回原始表单字段。
+
+Spring Boot 的病例详情把原始表单保存在 `patientInput`，把正式化值放在 `result.summary`、`result.structuredRecord` 和 `result.analysis`。结果页必须显示后者；只有“查看原始输入/人工复核”场景才显示 `patientInput`。
 
 ## 同步策略
 

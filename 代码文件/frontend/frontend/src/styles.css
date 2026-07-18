@@ -525,6 +525,12 @@ textarea:focus-visible {
 .analysis-grid span { color: var(--text-soft); font-size: 11px; }
 .analysis-grid p { margin: 7px 0 0; font-size: 14px; line-height: 1.7; }
 .medical-notice { margin: 24px 0 0; padding: 13px 15px; border-left: 2px solid #b28b68; background: rgba(178, 139, 104, 0.07); color: #746252; font-size: 12px; line-height: 1.7; }
+.record-generation-status { display: flex; align-items: center; gap: 10px; margin: 10px 0 16px; }
+.record-generation-status span { display: inline-flex; align-items: center; min-height: 26px; padding: 3px 10px; border: 1px solid #c8d7ce; border-radius: 999px; background: #eef6f1; color: #315b45; font-size: 12px; font-weight: 700; }
+.record-generation-status span[data-backend="template"] { border-color: #ddc8ae; background: #fbf5ec; color: #765c3d; }
+.record-generation-status span[data-backend="unknown"] { border-color: #d7d7d7; background: #f5f5f5; color: #666; }
+.record-generation-status small { color: var(--text-muted); font-size: 12px; }
+.record-generation-warning { margin: -7px 0 14px; color: #8a653d; font-size: 12px; line-height: 1.6; }
 .attachment-row { display: flex; flex-wrap: wrap; align-items: center; gap: 11px; padding: 15px 0; border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); color: var(--text-muted); font-size: 13px; }
 .attachment-row small { margin-left: auto; color: var(--text-soft); font-size: 11px; }
 .attachment-row details { flex-basis: 100%; margin-left: 25px; }

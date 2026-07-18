@@ -37,7 +37,14 @@ public class MockAiClient implements AiClient {
                 "mock-rules-1.0",
                 0.75,
                 false,
-                null
+                null,
+                new RecordGenerationInfo(
+                        "template",
+                        "mock-fact-template",
+                        "record-gen-template-mock-1.0",
+                        false,
+                        List.of("当前后端使用课程演示 Mock，不代表真实 Transformer 推理")
+                )
         );
     }
 

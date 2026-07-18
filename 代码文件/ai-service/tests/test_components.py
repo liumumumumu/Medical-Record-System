@@ -29,8 +29,18 @@ def test_record_contains_all_sections():
         physical_exam="体温38.5℃",
         lab_results="白细胞升高",
     )
-    record = RecordGenerator().generate(patient, "上呼吸道感染", "建议就医")
-    for section in ("基本信息", "主诉", "现病史", "既往史", "体格检查", "辅助检查", "初步诊断", "处理建议"):
+    record = RecordGenerator().generate(patient).text
+    for section in (
+        "基本信息",
+        "主诉",
+        "现病史",
+        "既往史",
+        "体格检查",
+        "辅助检查",
+        "初步诊断（医生输入）",
+        "既往治疗记录（患者已接受）",
+        "用药记录（患者已使用）",
+    ):
         assert section in record
 
 

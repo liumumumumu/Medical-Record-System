@@ -5,3 +5,9 @@ matplotlib==3.10.7
 numpy==2.3.5
 scikit-learn==1.8.0
 pytest==9.0.3
+
+# 可选：Transformer 推理后端。装了 torch/transformers 且存在
+# models/transformer_production/ 权重时自动启用（modelVersion 2.0.0），
+# 否则回退 sklearn 模型（modelVersion 1.0.0），功能不受影响。
+# torch>=2.6
+# transformers>=4.50

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Medical Record AI Service
-  version: 1.0.0
+  version: 1.2.0
   description: 课程演示用症状抽取、多病种辅助分析和结构化病历服务，不替代医生诊断。
 servers:
   - url: http://localhost:5000
@@ -16,7 +16,7 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [status, service, modelLoaded, knowledgeLoaded, supportedDiagnoses, modelVersion]
+                required: [status, service, modelLoaded, knowledgeLoaded, supportedDiagnoses, modelVersion, recordGeneratorLoaded, recordGeneratorBackend, recordGeneratorVersion]
                 properties:
                   status: {type: string, enum: [ok, degraded]}
                   service: {type: string}
@@ -25,6 +25,9 @@ paths:
                   supportedDiagnoses: {type: integer}
                   modelName: {type: string}
                   modelVersion: {type: string}
+                  recordGeneratorLoaded: {type: boolean}
+                  recordGeneratorBackend: {type: string, enum: [transformer, template]}
+                  recordGeneratorVersion: {type: string}
   /metadata:
     get:
       summary: 获取模型版本、类别、指标和运行限制
@@ -43,6 +46,10 @@ paths:
       responses:
         "200":
           description: 轻量 AnalysisResult
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LegacyResult"
   /nlp/analyze/frontend:
     post:
       summary: CYH 前端字段兼容分析接口
@@ -143,9 +150,9 @@ components:
         vital_signs: {type: string}
         physical_exam: {type: string}
         auxiliary_exam: {type: string}
-        preliminary_diagnosis: {type: string, description: 仅回显，不参与推理}
-        treatment_taken: {type: string, description: 仅回显，不参与推理}
-        medication_usage: {type: string, description: 仅回显，不参与推理}
+        preliminary_diagnosis: {type: string, description: 保留事实并书面化后进入正式病历，不参与辅助诊断推理}
+        treatment_taken: {type: string, description: 保留事实并书面化后进入正式病历，不参与辅助诊断推理}
+        medication_usage: {type: string, description: 保留事实并书面化后进入正式病历，不参与辅助诊断推理}
         generation_needs:
           type: array
           items: {type: string, enum: [record, symptom, diagnosis, treatment, full-report]}
@@ -154,7 +161,7 @@ components:
           items: {type: object}
     FrontendResult:
       type: object
-      required: [status, generatedAt, processingTimeMs, model, summary, structuredRecord, analysis, attachments]
+      required: [status, generatedAt, processingTimeMs, model, recordGeneration, summary, structuredRecord, analysis, attachments]
       properties:
         status: {type: string, const: completed}
         generatedAt: {type: string, format: date-time}
@@ -166,8 +173,10 @@ components:
             version: {type: string}
             confidence: {type: number, minimum: 0, maximum: 1}
             lowConfidence: {type: boolean}
-        summary: {type: object}
-        structuredRecord: {type: object}
+        recordGeneration:
+          $ref: "#/components/schemas/RecordGenerationInfo"
+        summary: {type: object, description: 病例摘要；chiefComplaint 为书面化结果}
+        structuredRecord: {type: object, description: 书面化后的现病史、既往史、过敏史、生命体征、体格检查、辅助检查及完整病历}
         analysis:
           type: object
           properties:
@@ -181,6 +190,50 @@ components:
             disclaimer: {type: string}
         attachments: {type: array, items: {type: object}}
         failureReason: {type: [string, "null"]}
+    LegacyResult:
+      type: object
+      required: [generatedRecord, recordGeneration, formalizedInput, symptoms, medicalTerms, diagnosisTop1, diagnosisCandidates, diagnosisReason, treatmentAdvice, modelVersion, confidence, lowConfidence]
+      properties:
+        generatedRecord: {type: string}
+        recordGeneration:
+          $ref: "#/components/schemas/RecordGenerationInfo"
+        formalizedInput:
+          $ref: "#/components/schemas/FormalizedInput"
+        symptoms: {type: array, items: {type: string}}
+        medicalTerms: {type: array, items: {type: string}}
+        diagnosisTop1: {type: string}
+        diagnosisCandidates: {type: array, items: {type: string}}
+        diagnosisReason: {type: string}
+        treatmentAdvice: {type: string}
+        content: {type: string}
+        modelVersion: {type: string}
+        confidence: {type: number}
+        lowConfidence: {type: boolean}
+        lowConfidenceReason: {type: [string, "null"]}
+    FormalizedInput:
+      type: object
+      description: 保留输入事实并转换为临床书面语；原始请求由业务后端另行保存。
+      required: [chiefComplaint, presentIllness, pastHistory, allergyHistory, vitalSigns, physicalExam, auxiliaryExam, preliminaryDiagnosis, treatmentTaken, medicationUsage]
+      properties:
+        chiefComplaint: {type: string}
+        presentIllness: {type: string}
+        pastHistory: {type: string}
+        allergyHistory: {type: string}
+        vitalSigns: {type: string}
+        physicalExam: {type: string}
+        auxiliaryExam: {type: string}
+        preliminaryDiagnosis: {type: string}
+        treatmentTaken: {type: string}
+        medicationUsage: {type: string}
+    RecordGenerationInfo:
+      type: object
+      required: [backend, modelName, modelVersion, fallbackUsed, warnings]
+      properties:
+        backend: {type: string, enum: [transformer, template]}
+        modelName: {type: string}
+        modelVersion: {type: string}
+        fallbackUsed: {type: boolean}
+        warnings: {type: array, items: {type: string}}
     ApiError:
       type: object
       required: [code, message, fieldErrors, requestId]

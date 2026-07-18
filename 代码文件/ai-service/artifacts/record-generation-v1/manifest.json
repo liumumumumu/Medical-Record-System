@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "record-generation-dataset-v1",
+  "createdAt": "2026-07-16T15:23:17.405792+00:00",
+  "seed": 42,
+  "weakSamplesPerDomain": 3000,
+  "outputCounts": {
+    "train.jsonl": 24488,
+    "dev.jsonl": 833,
+    "test.jsonl": 811,
+    "weak_train.jsonl": 17083,
+    "weak_dev.jsonl": 917,
+    "gold_train.jsonl": 7405,
+    "gold_dev.jsonl": 833,
+    "gold_test.jsonl": 811
+  },
+  "sourceCounts": {
+    "IMCS-21-train-expanded-references": 4944,
+    "IMCS-21-dev-cases": 833,
+    "IMCS-21-test-cases": 811,
+    "CBLUE-IMCS-V2-MRG": 2461,
+    "Toyhom-weak-train": 17083,
+    "Toyhom-weak-dev": 917
+  },
+  "weakRowsAvailableByDomain": {
+    "男科": 94595,
+    "内科": 220600,
+    "妇产科": 183748,
+    "肿瘤科": 75553,
+    "儿科": 101601,
+    "外科": 115990
+  },
+  "cblueFiltering": {
+    "report_generation_seen": 3000,
+    "holdout_duplicate_removed": 539,
+    "kept": 2461
+  },
+  "integrity": {
+    "imcsIdOverlap": {
+      "train_dev": 0,
+      "train_test": 0,
+      "dev_test": 0
+    },
+    "malformedGoldTargets": 0
+  },
+  "sources": [
+    {
+      "path": "IMCS-21/dataset/train.json",
+      "bytes": 44553527,
+      "sha256": "89090a873da774c644d2ab303596ce03a7168c6f3fb2c8db004273f97f5c28ca"
+    },
+    {
+      "path": "IMCS-21/dataset/dev.json",
+      "bytes": 15138259,
+      "sha256": "866c638ef0ac6e1db6e63748340c2195e6b5f6c9f38d0b1a291bf5490cdb56dc"
+    },
+    {
+      "path": "IMCS-21/dataset/test.json",
+      "bytes": 14900333,
+      "sha256": "2c0145882c4f3353d567c9d7872e649dd60964fa74dd8755201cdd98eab6fed9"
+    },
+    {
+      "path": "CBLUE_mirrors/chinese-med/train.json",
+      "bytes": 96724998,
+      "sha256": "3a631aebe1d89e864155765035cc808c6144f498839fb22dd2bc3294d1d92a72"
+    },
+    {
+      "path": "external/Chinese-medical-dialogue-data/Data_数据/Andriatria_男科/男科5-13000.csv",
+      "bytes": 45420571,
+      "sha256": "e1a1fe2b58531a9e965cf574d6fdb8e2b021f4939859fda903e819b4e2b46e94"
+    },
+    {
+      "path": "external/Chinese-medical-dialogue-data/Data_数据/IM_内科/内科5000-33000.csv",
+      "bytes": 104955943,
+      "sha256": "d422cdec3de805cab02d383a1f447314544af739e394212f2f269588c51e43a1"
+    },
+    {
+      "path": "external/Chinese-medical-dialogue-data/Data_数据/OAGD_妇产科/妇产科6-28000.csv",
+      "bytes": 80298267,
+      "sha256": "537457b3af51f61616bd0bfbd2244706882ff3606d73238a01da5b0e80a241e4"
+    },
+    {
+      "path": "external/Chinese-medical-dialogue-data/Data_数据/Oncology_肿瘤科/肿瘤科5-10000.csv",
+      "bytes": 38466010,
+      "sha256": "6969d0f7868f03347901968716d1af1ae5427fc139a1f929f86b6aa6de73ef1a"
+    },
+    {
+      "path": "external/Chinese-medical-dialogue-data/Data_数据/Pediatric_儿科/儿科5-14000.csv",
+      "bytes": 48424279,
+      "sha256": "4f3fc8237f16684b8dd8563fc727aff94c568abc1d835bcf74cf3d00478eedfc"
+    },
+    {
+      "path": "external/Chinese-medical-dialogue-data/Data_数据/Surgical_外科/外科5-14000.csv",
+      "bytes": 53683019,
+      "sha256": "e9ce8d4eb110634d8175c52261a012330af8bc135ea74c31ba653ebd05f3c4c1"
+    }
+  ],
+  "licenses": {
+    "IMCS-21": "仓库未声明许可证；仅用于课程研究，不公开再分发数据或权重",
+    "CBLUE_mirrors": "Apache-2.0（以本地镜像 README 声明为准）",
+    "Toyhom-Chinese-medical-dialogue-data": "MIT; git commit 26724a4357fcd142f0cab81188cacf1a2dd8a827"
+  },
+  "weakLabelPolicy": "仅从标题和患者 ask 中摘取主诉、现病史、明确既往史及明确检查句；answer 只作为带警示的上下文，不生成诊断、药物或已执行治疗标签"
+}

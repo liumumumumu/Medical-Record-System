@@ -133,6 +133,8 @@ def run(base_url: str, ai_url: str, artifact_dir: Path, filler_count: int) -> No
 
     status, _, ai_health = json_request("GET", f"{ai_url}/health")
     require(status == 200 and isinstance(ai_health, dict) and ai_health.get("status") == "ok", "AI 健康检查失败")
+    require(ai_health.get("recordGeneratorBackend") == "transformer", "AI 病历生成未使用 Transformer")
+    require(ai_health.get("recordGeneratorLoaded") is True, "AI 病历生成模型未加载")
     status, _, backend_health = json_request("GET", f"{base_url}/actuator/health")
     require(status == 200 and isinstance(backend_health, dict) and backend_health.get("status") == "UP", "后端聚合健康检查失败")
     status, cors_headers, _ = request(
@@ -178,6 +180,9 @@ def run(base_url: str, ai_url: str, artifact_dir: Path, filler_count: int) -> No
         "vitalSigns": "体温 38.5℃",
         "physicalExam": "咽部充血",
         "auxiliaryExam": "待结合附件",
+        "preliminaryDiagnosis": "医生确认：上呼吸道感染",
+        "treatmentTaken": "已接受物理降温和补液",
+        "medicationUsage": "既往已使用对乙酰氨基酚",
         "generationNeeds": ["record", "symptom", "diagnosis", "treatment", "full-report"],
     }
     attachment_text = "附件检查提示白细胞轻度升高，C反应蛋白升高。"
@@ -216,13 +221,19 @@ def run(base_url: str, ai_url: str, artifact_dir: Path, filler_count: int) -> No
     require(status == 200 and isinstance(detail, dict), "病例详情读取失败")
     result = detail["result"]
     analysis = result["analysis"]
+    record_generation = result["recordGeneration"]
     attachments = result["attachments"]
     require(detail["status"] == "completed", "病例未进入完成状态")
     require(analysis["modelVersion"] != "unknown", "后端未使用真实 AI 服务")
+    require(record_generation["backend"] == "transformer", "后端病例未保留 Transformer 生成元数据")
+    require(record_generation["fallbackUsed"] is False, f"病历生成发生兜底：{record_generation['warnings']}")
     require(0.0 <= float(analysis["confidence"]) <= 1.0, "动态置信度超出有效范围")
     require(attachments and attachments[0]["parseStatus"] == "parsed", "DOCX 附件未解析")
     require("白细胞轻度升高" in attachments[0]["extractedText"], "附件提取文本不正确")
     require("白细胞轻度升高" in result["structuredRecord"]["generatedContent"], "附件文本未进入 AI 上下文")
+    require("医生确认：上呼吸道感染" in result["structuredRecord"]["generatedContent"], "医生输入诊断未进入正式病历")
+    require("已接受物理降温和补液" in result["structuredRecord"]["generatedContent"], "既往治疗记录未进入正式病历")
+    require("既往已使用对乙酰氨基酚" in result["structuredRecord"]["generatedContent"], "既往用药记录未进入正式病历")
     require(result["summary"]["age"] == 0, "年龄 0 在接口链路中丢失")
 
     status, _, first_page = json_request(
@@ -238,6 +249,14 @@ def run(base_url: str, ai_url: str, artifact_dir: Path, filler_count: int) -> No
     require(status == 200 and isinstance(search_page, dict), "历史搜索接口失败")
     require(case_id in {item["caseId"] for item in search_page["content"]}, "服务端搜索未找到分页外病例")
 
+    auth_headers = {"Authorization": f"Bearer {token}"}
+    status, _, initial_report = request("GET", f"{base_url}/api/v1/cases/{case_id}/report", headers=auth_headers)
+    require(status == 200 and initial_report.startswith(b"PK"), "初始 DOCX 报告下载失败")
+    initial_report_text = docx_text(initial_report)
+    require(patient_name in initial_report_text, "初始报告缺少患者姓名")
+    require("医生确认：上呼吸道感染" in initial_report_text, "初始报告缺少医生输入诊断")
+    require("已接受物理降温和补液" in initial_report_text, "初始报告缺少既往治疗记录")
+
     edited_record = "人工复核病历第一行\n人工复核病历第二行"
     status, _, edited = json_request(
         "PUT",
@@ -247,12 +266,11 @@ def run(base_url: str, ai_url: str, artifact_dir: Path, filler_count: int) -> No
     )
     require(status == 200 and isinstance(edited, dict) and edited.get("editedRecord") == edited_record, "病历编辑保存失败")
 
-    auth_headers = {"Authorization": f"Bearer {token}"}
     status, _, report = request("GET", f"{base_url}/api/v1/cases/{case_id}/report", headers=auth_headers)
     require(status == 200 and report.startswith(b"PK"), "DOCX 报告下载失败")
     report_text = docx_text(report)
     require("人工复核病历第一行" in report_text and "人工复核病历第二行" in report_text, "报告未使用编辑后的病历")
-    require("科室：内科" in report_text, "报告科室未本地化")
+    require("就诊科室" in report_text and "内科" in report_text, "报告科室未本地化")
     require(report_text.count(DISCLAIMER) == 1, "报告免责声明不是恰好一次")
 
     attachment_url = str(attachments[0]["url"])
@@ -288,6 +306,7 @@ def run(base_url: str, ai_url: str, artifact_dir: Path, filler_count: int) -> No
         "caseId": case_id,
         "jobId": created["jobId"],
         "modelVersion": analysis["modelVersion"],
+        "recordGeneratorVersion": record_generation["modelVersion"],
         "confidence": analysis["confidence"],
         "attachmentStatus": attachments[0]["parseStatus"],
         "searchTotal": search_page["totalElements"],

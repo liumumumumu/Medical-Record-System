@@ -77,7 +77,9 @@ public class RemoteAiClient implements AiClient {
                 response.modelVersion() == null ? "unknown" : response.modelVersion(),
                 response.confidence() == null ? 0.0 : response.confidence(),
                 Boolean.TRUE.equals(response.lowConfidence()),
-                response.lowConfidenceReason()
+                response.lowConfidenceReason(),
+                response.recordGeneration(),
+                response.formalizedInput()
         );
     }
 
@@ -145,7 +147,9 @@ public class RemoteAiClient implements AiClient {
             @JsonAlias("modelVersion") @JsonProperty("model_version") String modelVersion,
             Double confidence,
             @JsonAlias("lowConfidence") @JsonProperty("low_confidence") Boolean lowConfidence,
-            @JsonAlias("lowConfidenceReason") @JsonProperty("low_confidence_reason") String lowConfidenceReason
+            @JsonAlias("lowConfidenceReason") @JsonProperty("low_confidence_reason") String lowConfidenceReason,
+            @JsonAlias("recordGeneration") @JsonProperty("record_generation") RecordGenerationInfo recordGeneration,
+            @JsonAlias("formalizedInput") @JsonProperty("formalized_input") FormalizedRecord formalizedInput
     ) {
     }
 }

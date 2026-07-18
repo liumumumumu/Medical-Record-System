@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "deprecated-record-generation-acceptance-v1",
+  "deprecated": true,
+  "deprecatedAt": "2026-07-17",
+  "reason": "旧验收由目标病历反构造输入，不能验证口语到书面病历的转换能力",
+  "replacement": "oral_formalization_metrics.json"
+}

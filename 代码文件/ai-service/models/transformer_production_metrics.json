@@ -1,0 +1,219 @@
+{
+  "modelName": "bert-base-chinese-finetuned-production",
+  "selection": "best dev macro-F1 across caps; test never used for selection",
+  "weakPoolSizes": {
+    "上呼吸道感染": 1708,
+    "普通感冒": 15423,
+    "支气管炎": 3713,
+    "腹泻": 4696,
+    "便秘": 5390
+  },
+  "conditions": [
+    {
+      "cap": 1000,
+      "addedPerClass": {
+        "上呼吸道感染": 1000,
+        "普通感冒": 1000,
+        "支气管炎": 1000,
+        "腹泻": 1000,
+        "便秘": 1000
+      },
+      "trainSize": 6358,
+      "trainingSeconds": 253.4,
+      "history": [
+        {
+          "epoch": 1,
+          "trainLoss": 1.0585,
+          "accuracy": 0.8,
+          "macroF1": 0.810272
+        },
+        {
+          "epoch": 2,
+          "trainLoss": 0.6593,
+          "accuracy": 0.878652,
+          "macroF1": 0.880932
+        },
+        {
+          "epoch": 3,
+          "trainLoss": 0.5089,
+          "accuracy": 0.880899,
+          "macroF1": 0.883711
+        },
+        {
+          "epoch": 4,
+          "trainLoss": 0.3862,
+          "accuracy": 0.878652,
+          "macroF1": 0.882037
+        },
+        {
+          "epoch": 5,
+          "trainLoss": 0.2835,
+          "accuracy": 0.885393,
+          "macroF1": 0.887561
+        }
+      ],
+      "bestDevMacroF1": 0.887561,
+      "test": {
+        "accuracy": 0.84106,
+        "macroF1": 0.852112
+      },
+      "testReport": {
+        "上呼吸道感染": {
+          "precision": 0.686046511627907,
+          "recall": 0.6082474226804123,
+          "f1-score": 0.644808743169399,
+          "support": 97.0
+        },
+        "便秘": {
+          "precision": 0.9767441860465116,
+          "recall": 0.9333333333333333,
+          "f1-score": 0.9545454545454546,
+          "support": 45.0
+        },
+        "支气管炎": {
+          "precision": 0.7094017094017094,
+          "recall": 0.7614678899082569,
+          "f1-score": 0.7345132743362832,
+          "support": 109.0
+        },
+        "普通感冒": {
+          "precision": 0.9489795918367347,
+          "recall": 0.9789473684210527,
+          "f1-score": 0.9637305699481865,
+          "support": 95.0
+        },
+        "腹泻": {
+          "precision": 0.9541284403669725,
+          "recall": 0.9719626168224299,
+          "f1-score": 0.9629629629629629,
+          "support": 107.0
+        },
+        "accuracy": 0.8410596026490066,
+        "macro avg": {
+          "precision": 0.8550600878559671,
+          "recall": 0.8507917262330971,
+          "f1-score": 0.8521122009924571,
+          "support": 453.0
+        },
+        "weighted avg": {
+          "precision": 0.8390057189151042,
+          "recall": 0.8410596026490066,
+          "f1-score": 0.8391928954232822,
+          "support": 453.0
+        }
+      }
+    },
+    {
+      "cap": 2000,
+      "addedPerClass": {
+        "上呼吸道感染": 1708,
+        "普通感冒": 2000,
+        "支气管炎": 2000,
+        "腹泻": 2000,
+        "便秘": 2000
+      },
+      "trainSize": 11066,
+      "trainingSeconds": 427.8,
+      "history": [
+        {
+          "epoch": 1,
+          "trainLoss": 0.9421,
+          "accuracy": 0.775281,
+          "macroF1": 0.794775
+        },
+        {
+          "epoch": 2,
+          "trainLoss": 0.6113,
+          "accuracy": 0.869663,
+          "macroF1": 0.873
+        },
+        {
+          "epoch": 3,
+          "trainLoss": 0.4829,
+          "accuracy": 0.842697,
+          "macroF1": 0.851151
+        },
+        {
+          "epoch": 4,
+          "trainLoss": 0.3564,
+          "accuracy": 0.874157,
+          "macroF1": 0.872883
+        },
+        {
+          "epoch": 5,
+          "trainLoss": 0.252,
+          "accuracy": 0.869663,
+          "macroF1": 0.875261
+        }
+      ],
+      "bestDevMacroF1": 0.875261,
+      "test": {
+        "accuracy": 0.854305,
+        "macroF1": 0.86463
+      },
+      "testReport": {
+        "上呼吸道感染": {
+          "precision": 0.717391304347826,
+          "recall": 0.6804123711340206,
+          "f1-score": 0.6984126984126984,
+          "support": 97.0
+        },
+        "便秘": {
+          "precision": 0.9767441860465116,
+          "recall": 0.9333333333333333,
+          "f1-score": 0.9545454545454546,
+          "support": 45.0
+        },
+        "支气管炎": {
+          "precision": 0.7522935779816514,
+          "recall": 0.7522935779816514,
+          "f1-score": 0.7522935779816514,
+          "support": 109.0
+        },
+        "普通感冒": {
+          "precision": 0.9583333333333334,
+          "recall": 0.968421052631579,
+          "f1-score": 0.9633507853403142,
+          "support": 95.0
+        },
+        "腹泻": {
+          "precision": 0.9292035398230089,
+          "recall": 0.9813084112149533,
+          "f1-score": 0.9545454545454546,
+          "support": 107.0
+        },
+        "accuracy": 0.8543046357615894,
+        "macro avg": {
+          "precision": 0.8667931883064662,
+          "recall": 0.8631537492591075,
+          "f1-score": 0.8646295941651146,
+          "support": 453.0
+        },
+        "weighted avg": {
+          "precision": 0.8521123406656971,
+          "recall": 0.8543046357615894,
+          "f1-score": 0.8528813806716792,
+          "support": 453.0
+        }
+      }
+    }
+  ],
+  "selectedCap": 1000,
+  "selectedTest": {
+    "accuracy": 0.84106,
+    "macroF1": 0.852112
+  },
+  "latencyMsPerSample": {
+    "gpu": 9.07,
+    "cpu": 74.03
+  },
+  "labels": [
+    "上呼吸道感染",
+    "便秘",
+    "支气管炎",
+    "普通感冒",
+    "腹泻"
+  ],
+  "outputDir": "D:\\医疗病历生成与分析系统\\代码文件\\ai-service\\models\\transformer_production",
+  "finalDecision": "superseded: final production weights use the pediatric-only weak-500 recipe (better distribution match; see augmentation_report.md section on round 2)"
+}

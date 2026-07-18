@@ -1,0 +1,50 @@
+{
+  "stage": "runtime-alignment",
+  "baseCheckpoint": "D:\\医疗病历生成与分析系统\\代码文件\\ai-service\\models\\record_generator_alignment",
+  "modelVersion": "record-gen-t5-v1.2.0",
+  "config": {
+    "base_model": "IDEA-CCNL/Randeng-T5-77M-MultiTask-Chinese",
+    "base_revision": "06d379d7375245f31cfb87166eff134cfeb5dead",
+    "model_version": "record-gen-t5-v1.2.0",
+    "source_max_length": 768,
+    "target_max_length": 320,
+    "batch_size": 8,
+    "gradient_accumulation": 2,
+    "learning_rate": 1e-05,
+    "warmup_ratio": 0.1,
+    "weak_epochs": 0,
+    "gold_epochs": 1,
+    "patience": 1,
+    "seed": 42,
+    "generation_beams": 4,
+    "fp16": false,
+    "bf16": true
+  },
+  "dataCounts": {
+    "train": 4933,
+    "dev": 833
+  },
+  "history": [
+    {
+      "epoch": 1.0,
+      "meanLoss": 1.7285613582818202,
+      "seconds": 298.66668180000124
+    }
+  ],
+  "alignmentDevMetrics": {
+    "bleu2": 0.4116702333017067,
+    "bleu4": 0.33575613783400016,
+    "rouge1": 0.5614803451008274,
+    "rouge2": 0.4609939652409677,
+    "rougeL": 0.5474232660540169,
+    "parseRate": 0.9987995198079231,
+    "sectionCompleteness": 0.9990996398559424,
+    "numericConsistency": 0.9831932773109243,
+    "criticalTermConsistency": 0.9519807923169268,
+    "sampleCount": 833.0,
+    "seconds": 182.65100990000064,
+    "samplesPerSecond": 4.560609878128011
+  },
+  "startedAt": "2026-07-17T04:29:25.942118+00:00",
+  "completedAt": "2026-07-17T04:37:27.276392+00:00"
+}

@@ -23,6 +23,7 @@ import type {
   GenerationNeed,
   MedicalFormValues,
   PageResult,
+  RecordGenerationInfo,
   RegisterRequest,
 } from "../types/medical-record";
 
@@ -97,6 +98,7 @@ type BackendResult = {
     physicalExam?: string;
     auxiliaryExam?: string;
   };
+  recordGeneration?: RecordGenerationInfo;
   analysis: {
     preliminaryDiagnosis?: string;
     treatmentTaken?: string;
@@ -242,6 +244,13 @@ function aiResult(result: BackendResult): AiResult {
       version: result.analysis.modelVersion || "unknown",
       confidence: result.analysis.confidence ?? 0,
       lowConfidence: result.analysis.lowConfidence ?? false,
+    },
+    recordGeneration: result.recordGeneration ?? {
+      backend: "unknown",
+      modelName: "unknown",
+      modelVersion: "unknown",
+      fallbackUsed: false,
+      warnings: [],
     },
     summary: {
       ...result.summary,

@@ -2,10 +2,10 @@ import json
 from datetime import datetime, timezone
 from time import perf_counter
 
-from src.config import MODEL_DIR, MODEL_NAME, MODEL_VERSION
+from src.config import MODEL_DIR, MODEL_NAME
 from src.diagnosis_analyzer import DiagnosisAnalyzer
 from src.medical_term_extractor import MedicalTermExtractor
-from src.record_generator import RecordGenerator
+from src.record_generator import RecordGenerationResult, RecordGenerator
 from src.schema import AnalysisResult, PatientInput, ValidationError
 from src.symptom_extractor import SymptomExtractor
 from src.treatment_advisor import DISCLAIMER, TreatmentAdvisor
@@ -46,19 +46,28 @@ class MedicalAIService:
             "status": "ok",
             "service": "ai-service",
             "modelLoaded": self.diagnosis_analyzer.model_loaded,
+            "modelBackend": self.diagnosis_analyzer.model_backend,
             "knowledgeLoaded": self.diagnosis_analyzer.knowledge_loaded,
             "supportedDiagnoses": len(self.diagnosis_analyzer.labels),
             "modelName": MODEL_NAME,
-            "modelVersion": MODEL_VERSION,
+            "modelVersion": self.diagnosis_analyzer.model_version,
+            "recordGeneratorLoaded": self.record_generator.model_loaded,
+            "recordGeneratorBackend": self.record_generator.backend,
+            "recordGeneratorVersion": self.record_generator.model_version,
         }
 
     @property
     def metadata(self) -> dict[str, object]:
-        metrics_path = MODEL_DIR / "metrics.json"
+        if self.diagnosis_analyzer.model_backend == "transformer":
+            metrics_path = MODEL_DIR / "transformer_production" / "metrics.json"
+        else:
+            metrics_path = MODEL_DIR / "metrics.json"
         metrics = json.loads(metrics_path.read_text(encoding="utf-8")) if metrics_path.exists() else {}
         return {
             "modelName": MODEL_NAME,
-            "modelVersion": MODEL_VERSION,
+            "modelVersion": self.diagnosis_analyzer.model_version,
+            "modelBackend": self.diagnosis_analyzer.model_backend,
+            "recordGeneration": self.record_generator.metadata,
             "supportedDiagnoses": self.diagnosis_analyzer.labels,
             "coreMetrics": metrics.get("test"),
             "limits": {
@@ -70,7 +79,11 @@ class MedicalAIService:
             "disclaimer": DISCLAIMER,
         }
 
-    def _run(self, patient: PatientInput) -> tuple[AnalysisResult, object]:
+    def _run(
+        self,
+        patient: PatientInput,
+    ) -> tuple[AnalysisResult, object, RecordGenerationResult]:
+        generated_record = self.record_generator.generate(patient)
         text = patient.model_text()
         symptom_result = self.symptom_extractor.extract(text)
         diagnosis = self.diagnosis_analyzer.analyze(
@@ -82,13 +95,20 @@ class MedicalAIService:
         medical_terms = self.medical_term_extractor.extract(text)
         if diagnosis.top1 != "暂无法确定":
             medical_terms = unique_preserve([diagnosis.top1, *medical_terms])
-        generated_record = self.record_generator.generate(
-            patient,
-            diagnosis.top1,
-            treatment.advice,
-        )
+        formalized_input = {
+            "chiefComplaint": generated_record.sections["主诉"],
+            "presentIllness": generated_record.sections["现病史"],
+            "pastHistory": generated_record.sections["既往史"],
+            "allergyHistory": generated_record.record_fields["过敏史"],
+            "vitalSigns": generated_record.record_fields["生命体征"],
+            "physicalExam": generated_record.record_fields["体格检查"],
+            "auxiliaryExam": generated_record.sections["辅助检查"],
+            "preliminaryDiagnosis": generated_record.record_fields["初步诊断"],
+            "treatmentTaken": generated_record.record_fields["既往治疗记录"],
+            "medicationUsage": generated_record.record_fields["用药记录"],
+        }
         result = AnalysisResult(
-            generated_record=generated_record,
+            generated_record=generated_record.text,
             symptoms=symptom_result.positive,
             medical_terms=medical_terms,
             diagnosis_top1=diagnosis.top1,
@@ -104,12 +124,15 @@ class MedicalAIService:
             low_confidence_reason=(
                 "有效症状或融合得分不足" if diagnosis.top1 == "暂无法确定" else None
             ),
+            formalized_input=formalized_input,
+            model_version=self.diagnosis_analyzer.model_version,
+            record_generation=generated_record.info,
         )
-        return result, diagnosis
+        return result, diagnosis, generated_record
 
     def analyze(self, payload: dict) -> AnalysisResult:
         patient = PatientInput.from_payload(payload)
-        result, _diagnosis = self._run(patient)
+        result, _diagnosis, _generated_record = self._run(patient)
         return result
 
     def analyze_frontend(self, payload: dict) -> dict[str, object]:
@@ -155,7 +178,7 @@ class MedicalAIService:
                 field_errors,
             )
         patient = PatientInput.from_payload(payload)
-        result, diagnosis = self._run(patient)
+        result, diagnosis, generated_record = self._run(patient)
         generated_at = datetime.now(timezone.utc).isoformat()
         confidence = result.confidence
         low_confidence = result.low_confidence
@@ -178,31 +201,32 @@ class MedicalAIService:
             "processingTimeMs": round((perf_counter() - started) * 1000, 3),
             "model": {
                 "name": MODEL_NAME,
-                "version": MODEL_VERSION,
+                "version": self.diagnosis_analyzer.model_version,
                 "confidence": round(confidence, 6),
                 "lowConfidence": low_confidence,
             },
+            "recordGeneration": result.record_generation.to_dict(),
             "summary": {
                 "patientName": patient.name,
                 "gender": gender_code,
                 "age": patient.age,
                 "department": patient.department,
                 "visitDate": patient.visit_date,
-                "chiefComplaint": patient.chief_complaint,
+                "chiefComplaint": generated_record.sections["主诉"],
             },
             "structuredRecord": {
-                "presentIllness": patient.history_present_illness,
-                "pastHistory": patient.past_history,
-                "allergyHistory": patient.allergy_history,
-                "vitalSigns": patient.vital_signs,
-                "physicalExam": patient.physical_exam,
-                "auxiliaryExam": patient.lab_results,
+                "presentIllness": generated_record.sections["现病史"],
+                "pastHistory": generated_record.sections["既往史"],
+                "allergyHistory": generated_record.record_fields["过敏史"],
+                "vitalSigns": generated_record.record_fields["生命体征"],
+                "physicalExam": generated_record.record_fields["体格检查"],
+                "auxiliaryExam": generated_record.sections["辅助检查"],
                 "generatedRecord": result.generated_record,
             },
             "analysis": {
-                "preliminaryDiagnosis": patient.preliminary_diagnosis,
-                "treatmentTaken": patient.treatment_taken,
-                "medicationUsage": patient.medication_usage,
+                "preliminaryDiagnosis": generated_record.record_fields["初步诊断"],
+                "treatmentTaken": generated_record.record_fields["既往治疗记录"],
+                "medicationUsage": generated_record.record_fields["用药记录"],
                 "generationNeeds": list(patient.generation_needs),
                 "symptoms": result.symptoms,
                 "medicalTerms": result.medical_terms,

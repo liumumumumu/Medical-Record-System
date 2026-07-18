@@ -1,0 +1,73 @@
+{
+  "modelName": "bert-base-chinese-finetuned",
+  "pretrained": "bert-base-chinese",
+  "parameterCount": 102271493,
+  "randomState": 42,
+  "maxLength": 256,
+  "batchSize": 16,
+  "epochs": 5,
+  "learningRate": 2e-05,
+  "classWeighting": "balanced",
+  "labels": [
+    "上呼吸道感染",
+    "便秘",
+    "支气管炎",
+    "普通感冒",
+    "腹泻"
+  ],
+  "sampleCounts": {
+    "train": 1358,
+    "dev": 445,
+    "test": 453
+  },
+  "device": "NVIDIA GeForce RTX 4070 Laptop GPU",
+  "trainingSeconds": 68.8,
+  "history": [
+    {
+      "epoch": 1,
+      "trainLoss": 1.1161,
+      "accuracy": 0.862921,
+      "macroF1": 0.868202
+    },
+    {
+      "epoch": 2,
+      "trainLoss": 0.3621,
+      "accuracy": 0.876404,
+      "macroF1": 0.876075
+    },
+    {
+      "epoch": 3,
+      "trainLoss": 0.2679,
+      "accuracy": 0.880899,
+      "macroF1": 0.885995
+    },
+    {
+      "epoch": 4,
+      "trainLoss": 0.2258,
+      "accuracy": 0.876404,
+      "macroF1": 0.881422
+    },
+    {
+      "epoch": 5,
+      "trainLoss": 0.1831,
+      "accuracy": 0.896629,
+      "macroF1": 0.897421
+    }
+  ],
+  "dev": {
+    "accuracy": 0.896629,
+    "macroF1": 0.897421
+  },
+  "test": {
+    "accuracy": 0.843267,
+    "macroF1": 0.852193
+  },
+  "latencyMsPerSample": {
+    "gpu": 8.9,
+    "cpu": 71.81
+  },
+  "environment": {
+    "python": "3.13.0",
+    "torch": "2.11.0+cu128"
+  }
+}

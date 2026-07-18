@@ -1,0 +1,6 @@
+# Record-generation training and inference environment.
+torch>=2.11,<2.12
+transformers>=5.14,<5.15
+sentencepiece>=0.2.1,<0.3
+protobuf>=6.33,<7
+safetensors>=0.8,<0.9

@@ -31,6 +31,7 @@ class MedicalTermExtractor:
         resource_path = RESOURCE_DIR / "medical_terms.json"
         if resource_path.exists():
             terms.update(load_json(resource_path))
+        self.term_categories = dict(terms)
         self.terms = sorted(
             (term for term in terms if term not in GENERIC_TERMS),
             key=lambda term: (-len(term), term),
@@ -47,3 +48,10 @@ class MedicalTermExtractor:
                 if len(matches) >= self.limit:
                     break
         return matches
+
+    def terms_for_categories(self, categories: set[str]) -> frozenset[str]:
+        return frozenset(
+            normalize_text(term)
+            for term, category in self.term_categories.items()
+            if category in categories and len(normalize_text(term)) >= 2
+        )

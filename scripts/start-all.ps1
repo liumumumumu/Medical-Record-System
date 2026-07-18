@@ -5,6 +5,7 @@
     [string]$MongoDatabase = "medical_records",
     [switch]$EnableDemoUser,
     [switch]$OpenBrowser,
+    [switch]$AllowRecordTemplateFallback,
     [switch]$ForceRebuild
 )
 
@@ -27,15 +28,34 @@ function Write-Step([string]$Message) {
 }
 
 function Test-Port([int]$Port) {
-    return [bool](Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction SilentlyContinue)
+    # Use a bounded loopback connection instead of Get-NetTCPConnection.  The
+    # latter can block indefinitely when the Windows CIM networking provider is
+    # unhealthy, which used to freeze the launcher at the environment check.
+    $client = [Net.Sockets.TcpClient]::new()
+    try {
+        $attempt = $client.ConnectAsync("127.0.0.1", $Port)
+        if (-not $attempt.Wait(700)) { return $false }
+        return $client.Connected
+    } catch {
+        return $false
+    } finally {
+        $client.Dispose()
+    }
 }
 
 function Get-PortOwnerDescription([int]$Port) {
-    $connection = Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($null -eq $connection) { return "未知进程" }
-    $process = Get-CimInstance Win32_Process -Filter "ProcessId=$([int]$connection.OwningProcess)" -ErrorAction SilentlyContinue
-    if ($null -eq $process) { return "PID $($connection.OwningProcess)" }
-    return "$($process.Name)（PID $($process.ProcessId)）"
+    $ownerPid = $null
+    $netstat = Join-Path $env:SystemRoot "System32\netstat.exe"
+    foreach ($line in @(& $netstat -ano -p tcp 2>$null)) {
+        if ($line -match "^\s*TCP\s+\S+:$Port\s+\S+\s+LISTENING\s+(\d+)\s*$") {
+            $ownerPid = [int]$Matches[1]
+            break
+        }
+    }
+    if ($null -eq $ownerPid) { return "未知进程" }
+    $process = Get-Process -Id $ownerPid -ErrorAction SilentlyContinue
+    if ($null -eq $process) { return "PID $ownerPid" }
+    return "$($process.ProcessName)（PID $ownerPid）"
 }
 
 function Wait-Http([string]$Url, [int]$Seconds, $ProcessRecord) {
@@ -211,14 +231,24 @@ if ($frontendNeedsBuild) {
 $startedRecords = @()
 try {
     Write-Step "启动 AI 服务"
+    $recordModelConfig = Join-Path $Root "代码文件\ai-service\models\record_generator_v1\config.json"
+    if (-not $AllowRecordTemplateFallback -and -not (Test-Path -LiteralPath $recordModelConfig)) {
+        throw "缺少 Transformer 病历生成权重：$recordModelConfig。请先执行 AI 服务的 prepare_record_generation_data.py 与 train_record_generator.py。"
+    }
     $env:AI_HOST = "127.0.0.1"
     $env:AI_PORT = "$AiPort"
+    $env:RECORD_GENERATOR_BACKEND = if ($AllowRecordTemplateFallback) { "auto" } else { "transformer" }
+    $env:REQUIRE_RECORD_GENERATOR = if ($AllowRecordTemplateFallback) { "false" } else { "true" }
     $aiProcess = Start-Process -FilePath $python -ArgumentList (Join-Path $Root "代码文件\ai-service\app.py") `
         -WorkingDirectory (Join-Path $Root "代码文件\ai-service") -WindowStyle Hidden -PassThru `
         -RedirectStandardOutput (Join-Path $Logs "ai.out.log") -RedirectStandardError (Join-Path $Logs "ai.err.log")
     $aiRecord = Get-TrackedProcessRecord -ProcessId $aiProcess.Id -Service "AI"
     $startedRecords += $aiRecord
-    Wait-Http "http://127.0.0.1:$AiPort/health" 45 $aiRecord
+    Wait-Http "http://127.0.0.1:$AiPort/health" 120 $aiRecord
+    $aiHealth = Invoke-RestMethod -Uri "http://127.0.0.1:$AiPort/health" -TimeoutSec 10
+    if (-not $AllowRecordTemplateFallback -and [string]$aiHealth.recordGeneratorBackend -ne "transformer") {
+        throw "AI 服务虽已启动，但病历生成后端不是 Transformer。若仅需排查其他功能，可显式传入 -AllowRecordTemplateFallback。"
+    }
 
     Write-Step "启动后端服务"
     $env:SERVER_PORT = "$BackendPort"

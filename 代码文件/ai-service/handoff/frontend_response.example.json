@@ -8,6 +8,13 @@
     "confidence": 0.537208,
     "lowConfidence": false
   },
+  "recordGeneration": {
+    "backend": "transformer",
+    "modelName": "IDEA-CCNL/Randeng-T5-77M-MultiTask-Chinese",
+    "modelVersion": "record-gen-t5-v1.2.0",
+    "fallbackUsed": false,
+    "warnings": []
+  },
   "summary": {
     "patientName": "演示患者",
     "gender": "female",
@@ -17,18 +24,18 @@
     "chiefComplaint": "高热咳嗽伴全身酸痛2天"
   },
   "structuredRecord": {
-    "presentIllness": "突然高烧39.5℃，全身乏力、肌肉酸痛、头痛并咳嗽",
+    "presentIllness": "患者突发高热39.5℃，全身乏力、肌肉酸痛、头痛并咳嗽",
     "pastHistory": "无高血压糖尿病史",
-    "allergyHistory": "无",
-    "vitalSigns": "体温39.5℃，血压120/80mmHg",
+    "allergyHistory": "否认药物过敏史",
+    "vitalSigns": "T 39.5℃，BP 120/80mmHg",
     "physicalExam": "未见明显异常",
     "auxiliaryExam": "白细胞正常",
-    "generatedRecord": "一、基本信息……九、处理建议……"
+    "generatedRecord": "住院病历……二、主诉……十、用药记录……"
   },
   "analysis": {
     "preliminaryDiagnosis": "待查",
-    "treatmentTaken": "休息补水",
-    "medicationUsage": "无",
+    "treatmentTaken": "曾休息并补充水分",
+    "medicationUsage": "未用药",
     "generationNeeds": ["record", "diagnosis", "full-report"],
     "symptoms": ["肌肉酸痛", "乏力", "咳嗽", "头痛", "高热", "发热"],
     "medicalTerms": ["流行性感冒", "白细胞", "体温", "血压"],

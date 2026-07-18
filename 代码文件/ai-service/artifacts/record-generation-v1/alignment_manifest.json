@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "record-generation-formalization-v2",
+  "createdAt": "2026-07-17T05:26:41.907821+00:00",
+  "seed": 43,
+  "sourceStrategy": "original-patient-self-report-and-dialogue-to-runtime-fields",
+  "targetStrategy": "highest-clinical-style-gold-reference-per-original-case",
+  "weakSamplesUsed": 0,
+  "counts": {
+    "train": 7591,
+    "realDialogueTrain": 4933,
+    "trainOnlyOralAugmentation": 2658,
+    "dev": 833,
+    "test": 811
+  },
+  "exactInputTargetCopyRows": {
+    "train": 0,
+    "dev": 0,
+    "test": 0
+  },
+  "trainingAugmentation": "仅训练集使用 gold 目标的保事实口语扰动来模拟前端短字段；所有 dev/test 均保持真实原始医患对话且不做目标派生",
+  "policy": "输入仅来自原始患者自述和医患对话，绝不从参考病历反构造输入字段；弱标注口语摘抄不参与书面化微调；dev/test 不参与训练"
+}

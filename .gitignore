@@ -15,6 +15,14 @@ handoff-pending.md
 # Large optional corpora are not required to run the demo
 dataset/
 
+# Transformer weights (~400MB each, retrainable via scripts/train_transformer*.py)
+代码文件/ai-service/models/transformer/
+代码文件/ai-service/models/transformer_production/
+代码文件/ai-service/models/record_generator_v1/
+代码文件/ai-service/models/record_generator_smoke/
+代码文件/ai-service/models/record_generator_alignment*/
+代码文件/ai-service/models/record_generator_formal_v*/
+
 # Build and dependency caches
 **/node_modules/
 **/dist/

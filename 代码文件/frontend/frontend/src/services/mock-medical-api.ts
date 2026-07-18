@@ -111,6 +111,13 @@ function buildAiResult(input: CaseCreateRequest): AiResult {
       confidence: influenza ? 0.54 : 0.42,
       lowConfidence: !influenza,
     },
+    recordGeneration: {
+      backend: "template",
+      modelName: "mock-fact-template",
+      modelVersion: "record-gen-template-mock-1.0",
+      fallbackUsed: false,
+      warnings: ["当前使用前端离线演示数据，未调用真实 Transformer"],
+    },
     summary: {
       patientName: input.patientName,
       gender: input.gender,

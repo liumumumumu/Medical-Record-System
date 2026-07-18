@@ -1,0 +1,77 @@
+{
+  "modelVersion": "record-gen-t5-v1.2.0",
+  "evaluatedAt": "2026-07-17T06:11:22.272641+00:00",
+  "caseCount": 5,
+  "passedCount": 5,
+  "passRate": 1.0,
+  "seconds": 4.358807600001455,
+  "cases": [
+    {
+      "name": "成人胃肠口语",
+      "passed": true,
+      "backend": "transformer",
+      "fallbackUsed": false,
+      "missingRequired": [],
+      "retainedColloquial": [],
+      "warnings": [
+        "模型输出已完成临床书面语规范化",
+        "检测到口语输入，已对现病史执行原始事实锚定的临床书面化",
+        "既往史已按原始输入进行事实锚定和书面化"
+      ]
+    },
+    {
+      "name": "成人呼吸口语",
+      "passed": true,
+      "backend": "transformer",
+      "fallbackUsed": false,
+      "missingRequired": [],
+      "retainedColloquial": [],
+      "warnings": [
+        "模型输出已完成临床书面语规范化",
+        "检测到口语输入，已对主诉、现病史执行原始事实锚定的临床书面化",
+        "既往史已按原始输入进行事实锚定和书面化",
+        "辅助检查已按原始输入进行事实锚定和书面化"
+      ]
+    },
+    {
+      "name": "成人神经口语",
+      "passed": true,
+      "backend": "transformer",
+      "fallbackUsed": false,
+      "missingRequired": [],
+      "retainedColloquial": [],
+      "warnings": [
+        "模型输出已完成临床书面语规范化",
+        "检测到口语输入，已对主诉执行原始事实锚定的临床书面化",
+        "既往史已按原始输入进行事实锚定和书面化"
+      ]
+    },
+    {
+      "name": "成人泌尿口语",
+      "passed": true,
+      "backend": "transformer",
+      "fallbackUsed": false,
+      "missingRequired": [],
+      "retainedColloquial": [],
+      "warnings": [
+        "模型输出已完成临床书面语规范化",
+        "检测到口语输入，已对主诉、现病史执行原始事实锚定的临床书面化",
+        "既往史已按原始输入进行事实锚定和书面化",
+        "辅助检查已按原始输入进行事实锚定和书面化"
+      ]
+    },
+    {
+      "name": "儿科发热口语",
+      "passed": true,
+      "backend": "transformer",
+      "fallbackUsed": false,
+      "missingRequired": [],
+      "retainedColloquial": [],
+      "warnings": [
+        "模型输出已完成临床书面语规范化",
+        "检测到口语输入，已对主诉、现病史执行原始事实锚定的临床书面化",
+        "既往史已按原始输入进行事实锚定和书面化"
+      ]
+    }
+  ]
+}

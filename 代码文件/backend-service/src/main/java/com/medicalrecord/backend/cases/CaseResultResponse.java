@@ -1,5 +1,7 @@
 package com.medicalrecord.backend.cases;
 
+import com.medicalrecord.backend.ai.RecordGenerationInfo;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -9,6 +11,7 @@ public record CaseResultResponse(
         Instant generatedAt,
         Summary summary,
         StructuredRecord structuredRecord,
+        RecordGenerationInfo recordGeneration,
         Analysis analysis,
         List<AttachmentResponse> attachments
 ) {

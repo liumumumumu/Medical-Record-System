@@ -1,6 +1,7 @@
 package com.medicalrecord.backend.cases;
 
 import com.medicalrecord.backend.ai.AiAnalysisResult;
+import com.medicalrecord.backend.ai.FormalizedRecord;
 import com.medicalrecord.backend.files.AttachmentMetadata;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +15,7 @@ public class CaseMapper {
         CaseInput input = document.getInput();
         CaseResult result = document.getResult();
         AiAnalysisResult ai = result.analysis();
+        FormalizedRecord formalized = ai.formalizedRecord();
         String generatedContent = hasText(document.getEditedRecord())
                 ? document.getEditedRecord()
                 : ai.generatedRecord();
@@ -23,19 +25,20 @@ public class CaseMapper {
                 result.generatedAt(),
                 new CaseResultResponse.Summary(
                         input.patientName(), input.gender(), input.age(), input.department(),
-                        input.visitDate(), input.chiefComplaint()),
+                        input.visitDate(), preferFormalized(formalized.chiefComplaint(), input.chiefComplaint())),
                 new CaseResultResponse.StructuredRecord(
                         generatedContent,
-                        input.presentIllness(),
-                        input.pastHistory(),
-                        input.allergyHistory(),
-                        input.vitalSigns(),
-                        input.physicalExam(),
-                        input.auxiliaryExam()),
+                        preferFormalized(formalized.presentIllness(), input.presentIllness()),
+                        preferFormalized(formalized.pastHistory(), input.pastHistory()),
+                        preferFormalized(formalized.allergyHistory(), input.allergyHistory()),
+                        preferFormalized(formalized.vitalSigns(), input.vitalSigns()),
+                        preferFormalized(formalized.physicalExam(), input.physicalExam()),
+                        preferFormalized(formalized.auxiliaryExam(), input.auxiliaryExam())),
+                ai.recordGeneration(),
                 new CaseResultResponse.Analysis(
-                        input.preliminaryDiagnosis(),
-                        input.treatmentTaken(),
-                        input.medicationUsage(),
+                        preferFormalized(formalized.preliminaryDiagnosis(), input.preliminaryDiagnosis()),
+                        preferFormalized(formalized.treatmentTaken(), input.treatmentTaken()),
+                        preferFormalized(formalized.medicationUsage(), input.medicationUsage()),
                         input.generationNeeds(),
                         ai.content(),
                         ai.symptoms(),
@@ -106,5 +109,9 @@ public class CaseMapper {
 
     private boolean hasText(String value) {
         return value != null && !value.isBlank();
+    }
+
+    private String preferFormalized(String formalized, String original) {
+        return hasText(formalized) ? formalized : original;
     }
 }

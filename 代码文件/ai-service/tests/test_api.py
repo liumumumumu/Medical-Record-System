@@ -79,6 +79,9 @@ def test_health_contract():
     assert response.json["modelLoaded"] is True
     assert response.json["knowledgeLoaded"] is True
     assert response.json["supportedDiagnoses"] == 20
+    assert response.json["recordGeneratorLoaded"] is False
+    assert response.json["recordGeneratorBackend"] == "template"
+    assert response.json["recordGeneratorVersion"] == "record-gen-t5-v1.2.0"
 
 
 def test_analysis_contract_and_camel_case_output():
@@ -88,6 +91,7 @@ def test_analysis_contract_and_camel_case_output():
     assert response.content_type == "application/json; charset=utf-8"
     expected_fields = {
         "generatedRecord",
+        "recordGeneration",
         "symptoms",
         "medicalTerms",
         "diagnosisTop1",
@@ -99,14 +103,24 @@ def test_analysis_contract_and_camel_case_output():
         "confidence",
         "lowConfidence",
         "lowConfidenceReason",
+        "formalizedInput",
     }
     assert set(response.json) == expected_fields
     assert len(response.json["diagnosisCandidates"]) <= 3
     assert "不替代医生诊断" not in response.json["treatmentAdvice"]
     assert 0.0 <= response.json["confidence"] <= 1.0
     assert response.json["lowConfidence"] is False
-    assert response.json["modelVersion"] == "1.0.0"
+    # 1.0.0 = sklearn 后端；2.0.0 = transformer 后端（按机器上是否有权重自动选择）
+    assert response.json["modelVersion"] in {"1.0.0", "2.0.0"}
     assert response.json["content"] == response.json["diagnosisReason"]
+    assert response.json["formalizedInput"]["chiefComplaint"] == "发热、咳嗽3天，伴咽痛和鼻塞"
+    assert response.json["recordGeneration"] == {
+        "backend": "template",
+        "modelName": "fact-preserving-template-fallback",
+        "modelVersion": "record-gen-t5-v1.2.0",
+        "fallbackUsed": False,
+        "warnings": [],
+    }
 
 
 def test_accepts_snake_case_input():
@@ -128,7 +142,7 @@ def test_accepts_snake_case_input():
     assert response.status_code == 200
     assert response.json["diagnosisTop1"] != "暂无法确定"
     assert "就诊日期：2026-07-10" in response.json["generatedRecord"]
-    assert "生命体征：体温38.2℃" in response.json["generatedRecord"]
+    assert "生命体征：T 38.2℃" in response.json["generatedRecord"]
 
 
 def test_validation_error_contract():
@@ -148,6 +162,7 @@ def test_frontend_compatible_contract():
         "generatedAt",
         "processingTimeMs",
         "model",
+        "recordGeneration",
         "summary",
         "structuredRecord",
         "analysis",
@@ -157,14 +172,75 @@ def test_frontend_compatible_contract():
     assert response.json["summary"]["patientName"] == "李四"
     assert response.json["summary"]["gender"] == "female"
     assert response.json["summary"]["age"] == 130
-    assert response.json["structuredRecord"]["presentIllness"] == FRONTEND_PAYLOAD["presentIllness"]
+    assert response.json["structuredRecord"]["presentIllness"] == (
+        "患者突发高热39.5℃，全身乏力、肌肉酸痛、头痛并咳嗽"
+    )
+    assert response.json["structuredRecord"]["allergyHistory"] == "否认药物过敏史"
+    assert response.json["structuredRecord"]["vitalSigns"] == "T 39.5℃，BP 120/80mmHg"
+    assert response.json["analysis"]["treatmentTaken"] == "曾休息并补充水分"
+    assert response.json["analysis"]["medicationUsage"] == "未用药"
     assert "流行性感冒" in [
         response.json["analysis"]["diagnosisTop1"],
         *response.json["analysis"]["diagnosisCandidates"],
     ]
     assert response.json["analysis"]["generationNeeds"] == FRONTEND_PAYLOAD["generationNeeds"]
-    assert response.json["model"]["version"] == "1.0.0"
+    assert response.json["model"]["version"] in {"1.0.0", "2.0.0"}
     assert response.json["attachments"][0]["fileName"] == "blood-test.pdf"
+    assert response.json["recordGeneration"]["backend"] == "template"
+
+
+def test_formal_record_uses_authoritative_input_facts_not_auxiliary_diagnosis():
+    payload = dict(
+        FRONTEND_PAYLOAD,
+        preliminaryDiagnosis="医生输入诊断：偏头痛",
+        treatmentTaken="患者已接受冷敷处理",
+        medicationUsage="患者已服用自带药物A",
+    )
+    response = create_app().test_client().post("/nlp/analyze/frontend", json=payload)
+    assert response.status_code == 200
+    record = response.json["structuredRecord"]["generatedRecord"]
+    assert "八、初步诊断（医生输入）\n偏头痛" in record
+    assert "九、既往治疗记录（患者已接受）\n曾接受冷敷处理" in record
+    assert "十、用药记录（患者已使用）\n曾服用自带药物A" in record
+    assert response.json["analysis"]["preliminaryDiagnosis"] == "偏头痛"
+    assert response.json["analysis"]["treatmentTaken"] == "曾接受冷敷处理"
+    assert response.json["analysis"]["medicationUsage"] == "曾服用自带药物A"
+    assert response.json["analysis"]["diagnosisTop1"] != "医生输入诊断：偏头痛"
+
+
+def test_frontend_structured_fields_return_formalized_values():
+    payload = dict(
+        FRONTEND_PAYLOAD,
+        chiefComplaint="肚子疼还拉肚子两天",
+        presentIllness=(
+            "前天晚上吃了烧烤，第二天开始肚子一阵一阵疼，拉了四五次，"
+            "都是稀的，有点恶心，但是没吐，也没发烧。自己喝了点热水，"
+            "感觉没什么用。"
+        ),
+        pastHistory="平时身体正常",
+        allergyHistory="没发现有什么药过敏",
+        vitalSigns="体温36.8度，心率78次每分钟",
+        physicalExam="肚脐周围按着有点疼，无反跳痛",
+        preliminaryDiagnosis="医生考虑急性胃肠炎",
+        treatmentTaken="门诊补液一次，之后腹泻次数减少",
+        medicationUsage="吃过蒙脱石散",
+    )
+    response = create_app().test_client().post("/nlp/analyze/frontend", json=payload)
+    assert response.status_code == 200
+    body = response.json
+    assert body["summary"]["chiefComplaint"] == "腹痛伴腹泻2天"
+    assert body["structuredRecord"]["presentIllness"].startswith(
+        "患者于2天前晚间进食烧烤后"
+    )
+    assert body["structuredRecord"]["pastHistory"] == "既往体健"
+    assert body["structuredRecord"]["allergyHistory"] == "否认药物过敏史"
+    assert body["structuredRecord"]["vitalSigns"] == "T 36.8℃，P 78次/分"
+    assert body["structuredRecord"]["physicalExam"] == "脐周轻压痛，无反跳痛"
+    assert body["analysis"]["preliminaryDiagnosis"] == "考虑急性胃肠炎"
+    assert body["analysis"]["treatmentTaken"] == (
+        "曾于门诊接受补液治疗1次，治疗后腹泻次数减少"
+    )
+    assert body["analysis"]["medicationUsage"] == "曾服用蒙脱石散"
 
 
 def test_frontend_validation_error_maps_field_names():
@@ -269,10 +345,12 @@ def test_metadata_exposes_model_and_limits():
     client = create_app().test_client()
     response = client.get("/metadata")
     assert response.status_code == 200
-    assert response.json["modelVersion"] == "1.0.0"
+    assert response.json["modelVersion"] in {"1.0.0", "2.0.0"}
     assert len(response.json["supportedDiagnoses"]) == 20
     assert response.json["coreMetrics"]["accuracy"] >= 0.80
     assert response.json["limits"]["attachmentParsing"] is False
+    assert response.json["recordGeneration"]["backend"] == "template"
+    assert response.json["recordGeneration"]["modelVersion"] == "record-gen-t5-v1.2.0"
 
 
 def test_frontend_rejects_invalid_enums():
@@ -286,7 +364,9 @@ def test_frontend_rejects_invalid_enums():
     assert response.json["fieldErrors"]["generationNeeds"] == "生成需求枚举值无效"
 
 
-def test_handoff_examples_match_live_contract():
+def test_handoff_examples_match_live_contract(monkeypatch):
+    # handoff 样例是按 sklearn 后端生成的参考值，固定后端保证跨机器可复现
+    monkeypatch.setenv("AI_MODEL_BACKEND", "sklearn")
     request_payload = json.loads(
         (SERVICE_ROOT / "handoff" / "frontend_request.example.json").read_text(encoding="utf-8")
     )
