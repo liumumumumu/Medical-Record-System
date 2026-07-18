@@ -5,6 +5,12 @@ output/
 *.log
 *-delivery.zip
 
+# Local school deliverables and internal working material
+/docs/
+/scripts/
+/提交文档/
+/医疗病历生成与分析系统.pptx
+
 # Local agent/workspace metadata
 .agents/
 **/AGENTS.md
