@@ -10,6 +10,8 @@ output/
 /scripts/
 /提交文档/
 /医疗病历生成与分析系统.pptx
+/启动答辩演示.cmd
+/关闭答辩演示.cmd
 
 # Local agent/workspace metadata
 .agents/

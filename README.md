@@ -4,7 +4,7 @@
 
 ### Medical Record Generation and Analysis System
 
-一个贯通病例录入、附件解析、AI 辅助分析、结构化病历生成、历史管理与报告下载的课程项目。
+一个贯通病例录入、附件解析、AI 辅助分析、结构化病历生成、历史管理与报告下载的应用系统。
 
 [![React](https://img.shields.io/badge/React-19.1-61DAFB?logo=react&logoColor=white)](代码文件/frontend/frontend/package.json)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.16-6DB33F?logo=springboot&logoColor=white)](代码文件/backend-service/pom.xml)
@@ -13,18 +13,18 @@
 [![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](代码文件/backend-service/pom.xml)
 [![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)](代码文件/ai-service/README.md)
 
-[快速开始](#-快速开始) · [系统架构](#-系统架构) · [功能说明](#-核心功能) · [项目文档](#-项目文档)
+[快速开始](#-快速开始) · [系统架构](#-系统架构) · [功能说明](#-核心功能) · [模块文档](#-模块文档)
 
 </div>
 
 > [!IMPORTANT]
-> 本系统仅用于课程演示与辅助信息整理，不构成医疗诊断或治疗建议。请只使用虚构或脱敏病例数据。
+> 本系统仅用于学习研究与辅助信息整理，不构成医疗诊断或治疗建议。请只使用虚构或脱敏病例数据。
 
 ## 📖 项目简介
 
 本项目采用 `React → Spring Boot → Flask AI → MongoDB` 的四层架构，将原本分散的患者信息、检查资料和文本描述组织为清晰的病例处理流程。系统支持用户认证、病例提交、异步 AI 分析、附件解析、结果复核、历史检索和 DOCX 报告下载，并提供独立的数据清洗与质量分析流水线。
 
-在线演示默认调用真实 Flask AI 服务；Mock 仅用于显式的离线测试。仓库包含辅助诊断模型、知识索引和脱敏样例；病历生成权重体积较大，不进入 Git，答辩机器需保留本地 `models/record_generator_v1/`，其他机器可按病历生成改造说明复训。训练不使用 27 GB Synthea 语料。
+本地运行默认调用真实 Flask AI 服务；Mock 仅用于显式的离线测试。仓库包含辅助诊断模型、知识索引和脱敏样例；病历生成权重体积较大，不进入 Git，可通过 AI 服务中的数据准备与训练脚本重新生成。
 
 ## ✨ 核心功能
 
@@ -40,13 +40,13 @@
 | 报告导出 | 生成包含结构化信息、分析结果和免责声明的 DOCX 报告 |
 | 数据流水线 | NHANES 合并、标准化、数据质量检查以及糖尿病、肾功能、心血管分析子集 |
 
-病历文本由独立的 **Randeng-T5 生成模型**处理；辅助诊断则结合监督分类模型、规则层与知识检索层，两者互不覆盖。辅助诊断监督模型覆盖 5 类高质量训练标签，完整规则与检索能力覆盖 20 类常见疾病。正式分类模型为 **BERT 微调 v2.0.0**（IMCS-21 金标 + 远程监督弱标签训练，官方测试集 `macro-F1 = 0.8598`）；早期 TF-IDF+逻辑回归 v1.0.0（`macro-F1 = 0.8491`）经两轮对比实验综合评估后已弃用，仅作无 GPU 环境的自动降级兜底。详细说明见 [病历生成改造说明](docs/project/record-generation-implementation.md)、[AI 模型报告](代码文件/ai-service/model_report.md)、[Transformer 对比实验](代码文件/ai-service/transformer_comparison.md) 及 [数据扩充实验报告](代码文件/ai-service/augmentation_report.md)。
+病历文本由独立的 **Randeng-T5 生成模型**处理；辅助诊断则结合监督分类模型、规则层与知识检索层，两者互不覆盖。辅助诊断监督模型覆盖 5 类高质量训练标签，完整规则与检索能力覆盖 20 类常见疾病。正式分类模型为 **BERT 微调 v2.0.0**（IMCS-21 金标 + 远程监督弱标签训练，官方测试集 `macro-F1 = 0.8598`）；早期 TF-IDF+逻辑回归 v1.0.0（`macro-F1 = 0.8491`）经两轮对比实验综合评估后已弃用，仅作无 GPU 环境的自动降级兜底。详细说明见 [AI 模型报告](代码文件/ai-service/model_report.md)、[Transformer 对比实验](代码文件/ai-service/transformer_comparison.md) 及 [数据扩充实验报告](代码文件/ai-service/augmentation_report.md)。
 
 ## 🧭 系统架构
 
 ```mermaid
 flowchart LR
-    U["演示用户"] --> F["React + Vite 前端"]
+    U["系统用户"] --> F["React + Vite 前端"]
     F -->|"REST / JWT / Multipart"| B["Spring Boot 后端"]
     B -->|"异步 HTTP"| A["Flask AI 服务"]
     B --> M[("MongoDB")]
@@ -79,17 +79,6 @@ flowchart LR
 ```text
 Medical-Record-System/
 ├── README.md
-├── 启动答辩演示.cmd              # Windows 双击启动
-├── 关闭答辩演示.cmd              # Windows 双击安全关闭
-├── scripts/
-│   ├── start-all.ps1             # 构建、健康检查、启动与自动打开浏览器
-│   ├── stop-all.ps1              # 校验进程身份后安全停止
-│   ├── run-all-tests.ps1         # 全模块测试与构建
-│   └── e2e-smoke.py              # 真实 HTTP 全链路测试
-├── docs/
-│   ├── assignment/               # 课程要求截图
-│   ├── project/                  # 项目规划与分工文档
-│   └── reports/                  # 联调与验收报告
 └── 代码文件/
     ├── frontend/frontend/        # React 前端
     ├── backend-service/          # Spring Boot 后端
@@ -125,62 +114,61 @@ Pop-Location
 
 Spring Boot 使用 Maven Wrapper，首次构建时会自动下载 Java 依赖。
 
-### 3. 一键启动
+### 3. 启动服务
 
-答辩演示时直接双击根目录的：
-
-```text
-启动答辩演示.cmd
-```
-
-启动器会自动完成环境检查、按需构建、启动 AI/后端/前端、验证固定演示账号并打开浏览器。代码未变化时会复用构建产物；当前演示机实测冷启动约 19 秒，系统已运行时重复启动约 0.5 秒。
-
-也可以在 PowerShell 中运行：
+确认 MongoDB 已启动，然后分别打开三个 PowerShell 终端运行：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\start-all.ps1" -EnableDemoUser -OpenBrowser
+# 终端 1：AI 服务
+Set-Location ".\代码文件\ai-service"
+python app.py
+
+# 终端 2：后端服务
+Set-Location ".\代码文件\backend-service"
+.\mvnw.cmd spring-boot:run
+
+# 终端 3：前端服务
+Set-Location ".\代码文件\frontend\frontend"
+npm run dev
 ```
 
 默认访问地址：<http://127.0.0.1:5173/>
 
 | 项目 | 默认值 |
 | --- | --- |
-| 演示账号 | `demo` |
-| 演示密码 | `demo123456` |
 | 前端 | `http://127.0.0.1:5173` |
 | 后端 | `http://127.0.0.1:8080` |
 | AI 服务 | `http://127.0.0.1:5000` |
 | MongoDB | `mongodb://127.0.0.1:27017/medical_records` |
 
-> 演示账号只用于本地课程展示，不应沿用到公开部署环境。
-
-### 4. 一键关闭
-
-演示结束后双击：
-
-```text
-关闭答辩演示.cmd
-```
-
-关闭脚本会同时校验 PID、启动时间和可执行文件路径，仅结束由本项目启动的前端、后端和 AI 进程；MongoDB 系统服务保持运行。
+首次使用时可通过前端注册账号。停止系统时，在三个服务终端中分别按 `Ctrl+C`；MongoDB 系统服务需按本机安装方式单独管理。
 
 ## ✅ 测试与验证
 
-运行所有模块测试、前端构建和数据流水线：
+各模块可分别运行测试与构建：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\run-all-tests.ps1"
+# AI 服务
+Push-Location ".\代码文件\ai-service"
+python -m pytest
+Pop-Location
+
+# 后端服务
+Push-Location ".\代码文件\backend-service"
+.\mvnw.cmd test
+Pop-Location
+
+# 前端
+Push-Location ".\代码文件\frontend\frontend"
+npm test
+npm run build
+Pop-Location
+
+# 数据分析
+Push-Location ".\代码文件\data-analysis"
+python -m unittest discover tests
+Pop-Location
 ```
-
-运行真实 HTTP 全链路测试（会在当前数据库创建 1 条虚构病例）：
-
-```powershell
-.\scripts\start-all.ps1 -EnableDemoUser -MongoDatabase medical_records_e2e
-python .\scripts\e2e-smoke.py --filler-count 0
-.\scripts\stop-all.ps1
-```
-
-该测试覆盖 AI/后端健康检查、CORS、注册登录、multipart 附件上传、异步分析、真实 AI 响应、历史搜索、人工编辑、DOCX 报告、附件下载及注销重登。
 
 ## ⚙️ 配置说明
 
@@ -189,30 +177,13 @@ python .\scripts\e2e-smoke.py --filler-count 0
 - [后端配置模板](代码文件/backend-service/.env.example)
 - [前端配置模板](代码文件/frontend/frontend/.env.example)
 
-根目录启动器会在 `.runtime/` 中自动生成本地 JWT 密钥，并将日志、PID 记录和测试产物保存在该目录；这些内容均已从 Git 排除。
+## 📚 模块文档
 
-## 📚 项目文档
-
-- [初始项目计划](docs/project/initial-project-plan.md)
-- [AI 辅助开发总计划](docs/project/ai-development-plan.md)
-- [四人分工与交接说明](docs/project/team-collaboration.md)
-- [修复后全链路联调报告](docs/reports/e2e-report-fixed-2026-07-13.md)
 - [AI 服务说明](代码文件/ai-service/README.md)
-- [Transformer 病历生成改造说明](docs/project/record-generation-implementation.md)
+- [AI 模型报告](代码文件/ai-service/model_report.md)
 - [后端服务说明](代码文件/backend-service/README.md)
 - [数据分析说明](代码文件/data-analysis/README.md)
 - [前端说明](代码文件/frontend/README.md)
-
-<details>
-<summary><strong>查看课程作业要求截图</strong></summary>
-
-<br />
-
-![课程要求一](docs/assignment/requirement-01.png)
-
-![课程要求二](docs/assignment/requirement-02.png)
-
-</details>
 
 ## 🔒 数据与安全边界
 
@@ -226,6 +197,6 @@ python .\scripts\e2e-smoke.py --filler-count 0
 
 <div align="center">
 
-**仅供辅助整理与课程演示，不替代执业医师判断。**
+**仅供学习研究与辅助整理，不替代执业医师判断。**
 
 </div>
